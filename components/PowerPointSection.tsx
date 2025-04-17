@@ -2,10 +2,9 @@
 
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
-import { Search, X, ChevronRight, ChevronLeft, Folder, Image as ImageIcon } from "lucide-react";
+import { X, Folder, Image as ImageIcon } from "lucide-react";
 
 export default function PowerPointSection(): JSX.Element {
-  const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPath, setCurrentPath] = useState<string>("");
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [fileStructure, setFileStructure] = useState<any>(null);
@@ -48,15 +47,12 @@ export default function PowerPointSection(): JSX.Element {
     };
 
     const currentItems = getCurrentItems();
-    const filtered = currentItems.filter((item: any) =>
-      searchTerm.trim() === '' ? true : item.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
     // Debugging: Log items before sorting
-    console.log("Items before sorting:", filtered.map((item: any) => item.name));
+    console.log("Items before sorting:", currentItems.map((item: any) => item.name));
 
     // Sort items based on the number in the file name (e.g., Slide1.JPG, Slide10.JPG)
-    const sortedItems = [...filtered].sort((a: any, b: any) => {
+    const sortedItems = [...currentItems].sort((a: any, b: any) => {
       const getNumber = (name: string) => {
         // Match any number in the file name (e.g., Slide1.JPG -> 1, Slide10.JPG -> 10)
         const match = name.match(/Slide(\d+)\.JPG/);
@@ -71,7 +67,7 @@ export default function PowerPointSection(): JSX.Element {
     console.log("Items after sorting:", sortedItems.map((item: any) => item.name));
 
     setItems(sortedItems);
-  }, [currentPath, searchTerm, fileStructure]);
+  }, [currentPath, fileStructure]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -307,82 +303,74 @@ export default function PowerPointSection(): JSX.Element {
           onClick={goBack}
           className={`mb-4 xs:mb-6 flex items-center p-3 rounded-xl ${isDark ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-gray-800 hover:bg-gray-200'} transition-colors`}
         >
-          <ChevronRight className="h-5 w-5 ml-2" />
+          <svg
+            className="h-5 w-5 ml-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
           العودة
         </button>
       )}
 
       {currentPath && (
-        <>
-          <div className="mb-4 xs:mb-6 relative">
-            <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-              <Search className={`h-5 w-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-            </div>
-            <input
-              type="text"
-              placeholder="ابحث في الأسماء..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full p-3 xs:p-4 pr-12 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-800 text-white placeholder-gray-400 border border-gray-700' : 'bg-white text-gray-800 placeholder-gray-500 border border-gray-200'} text-right transition-all duration-300 text-sm xs:text-base`}
-              dir="rtl"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4">
-            {items.length > 0 ? (
-              items.map((item: any, index: number) => (
-                <div
-                  key={item.name}
-                  className={`relative overflow-hidden rounded-xl shadow-lg cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl ${isDark ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-100'}`}
-                  onClick={() => handleItemClick(item)}
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <div className={`absolute top-0 left-0 w-2 h-full ${isDark ? 'bg-gradient-to-b from-blue-500 to-purple-600' : 'bg-gradient-to-b from-blue-600 to-purple-700'}`}></div>
-                  <div className="p-4 xs:p-5 rtl">
-                    <div className="flex items-center mb-3">
-                      {item.type === 'folder' ? (
-                        <Folder className={`h-5 xs:h-6 w-5 xs:w-6 ml-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-                      ) : (
-                        <ImageIcon className={`h-5 xs:h-6 w-5 xs:w-6 ml-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-                      )}
-                      <h3 className={`text-base xs:text-lg font-bold truncate ${isDark ? 'text-white' : 'text-gray-800'}`}>{removeFileExtension(item.name)}</h3>
-                    </div>
-                    <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                      {item.type === 'folder' ? 'مجلد' : 'صورة'}
-                    </div>
-                    {item.type === 'file' && (
-                      <img
-                        src={`${process.env.NEXT_PUBLIC_R2_URL3}/orzozox/${currentPath}/${item.name}`}
-                        alt={item.name}
-                        className="mt-2 w-full h-32 object-cover rounded-md"
-                        loading="lazy"
-                      />
+        <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4">
+          {items.length > 0 ? (
+            items.map((item: any, index: number) => (
+              <div
+                key={item.name}
+                className={`relative overflow-hidden rounded-xl shadow-lg cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl ${isDark ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-100'}`}
+                onClick={() => handleItemClick(item)}
+                style={{ animationDelay: `${index * 0.05}s` }}
+              >
+                <div className={`absolute top-0 left-0 w-2 h-full ${isDark ? 'bg-gradient-to-b from-blue-500 to-purple-600' : 'bg-gradient-to-b from-blue-600 to-purple-700'}`}></div>
+                <div className="p-4 xs:p-5 rtl">
+                  <div className="flex items-center mb-3">
+                    {item.type === 'folder' ? (
+                      <Folder className={`h-5 xs:h-6 w-5 xs:w-6 ml-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                    ) : (
+                      <ImageIcon className={`h-5 xs:h-6 w-5 xs:w-6 ml-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                     )}
+                    <h3 className={`text-base xs:text-lg font-bold truncate ${isDark ? 'text-white' : 'text-gray-800'}`}>{removeFileExtension(item.name)}</h3>
                   </div>
-                  <div className={`absolute bottom-0 right-0 w-full h-1 ${isDark ? 'bg-gradient-to-r from-purple-600 to-blue-500' : 'bg-gradient-to-r from-purple-700 to-blue-600'}`}></div>
+                  <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {item.type === 'folder' ? 'مجلد' : 'صورة'}
+                  </div>
+                  {item.type === 'file' && (
+                    <img
+                      src={`${process.env.NEXT_PUBLIC_R2_URL3}/orzozox/${currentPath}/${item.name}`}
+                      alt={item.name}
+                      className="mt-2 w-full h-32 object-cover rounded-md"
+                      loading="lazy"
+                    />
+                  )}
                 </div>
-              ))
-            ) : (
-              <div className={`col-span-full p-6 xs:p-8 text-center rounded-xl shadow-lg ${isDark ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-500'}`}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-12 w-12 mx-auto mb-4 opacity-50"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <p className="text-base xs:text-lg">لا توجد عناصر مطابقة للبحث أو المجلد فارغ.</p>
+                <div className={`absolute bottom-0 right-0 w-full h-1 ${isDark ? 'bg-gradient-to-r from-purple-600 to-blue-500' : 'bg-gradient-to-r from-purple-700 to-blue-600'}`}></div>
               </div>
-            )}
-          </div>
-        </>
+            ))
+          ) : (
+            <div className={`col-span-full p-6 xs:p-8 text-center rounded-xl shadow-lg ${isDark ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-500'}`}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-12 w-12 mx-auto mb-4 opacity-50"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p className="text-base xs:text-lg">لا توجد عناصر مطابقة للبحث أو المجلد فارغ.</p>
+            </div>
+          )}
+        </div>
       )}
 
       {selectedImage && (
@@ -398,32 +386,6 @@ export default function PowerPointSection(): JSX.Element {
           >
             <X className="h-5 xs:h-6 w-5 xs:w-6" />
           </button>
-
-          {/* Previous Button */}
-          {selectedImageIndex > 0 && (
-            <button
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200 z-20"
-              onClick={(e) => {
-                e.stopPropagation();
-                showPreviousImage();
-              }}
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </button>
-          )}
-
-          {/* Next Button */}
-          {selectedImageIndex < items.filter((item: any) => item.type === 'file').length - 1 && (
-            <button
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200 z-20"
-              onClick={(e) => {
-                e.stopPropagation();
-                showNextImage();
-              }}
-            >
-              <ChevronRight className="h-6 w-6" />
-            </button>
-          )}
 
           <img
             src={selectedImage}
