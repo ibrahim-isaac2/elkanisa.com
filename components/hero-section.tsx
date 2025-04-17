@@ -151,7 +151,13 @@ export default function HeroSection() {
   const [showSettings, setShowSettings] = useState(false);
   const [activeTab, setActiveTab] = useState("theme");
   const [currentTextColor, setCurrentTextColor] = useState(textColors[0]);
-  const [globalFontSize, setGlobalFontSize] = useState(48);
+  const [globalFontSize, setGlobalFontSize] = useState(() => {
+    if (typeof window !== "undefined") {
+      const savedFontSize = localStorage.getItem("globalFontSize");
+      return savedFontSize ? parseInt(savedFontSize, 10) : 72; // حجم افتراضي أكبر
+    }
+    return 72;
+  });
   const [watermark, setWatermark] = useState("");
   const [watermarkColor, setWatermarkColor] = useState(textColors[0]);
   const [watermarkFontSize, setWatermarkFontSize] = useState(20);
@@ -238,6 +244,7 @@ export default function HeroSection() {
     [fuse]
   );
 
+  // Debounce the search to prevent excessive updates
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -255,11 +262,20 @@ export default function HeroSection() {
     const setInitialFontSize = () => {
       const width = window.innerWidth;
       if (width < 640) {
-        setGlobalFontSize(32);
+        setGlobalFontSize((prev) => {
+          const savedFontSize = localStorage.getItem("globalFontSize");
+          return savedFontSize ? parseInt(savedFontSize, 10) : 48;
+        });
       } else if (width >= 640 && width < 1024) {
-        setGlobalFontSize(48);
+        setGlobalFontSize((prev) => {
+          const savedFontSize = localStorage.getItem("globalFontSize");
+          return savedFontSize ? parseInt(savedFontSize, 10) : 72;
+        });
       } else {
-        setGlobalFontSize(64);
+        setGlobalFontSize((prev) => {
+          const savedFontSize = localStorage.getItem("globalFontSize");
+          return savedFontSize ? parseInt(savedFontSize, 10) : 96;
+        });
       }
     };
 
@@ -628,6 +644,13 @@ export default function HeroSection() {
     }
   }, []);
 
+  const saveSettings = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("globalFontSize", globalFontSize.toString());
+    }
+    setShowSettings(false);
+  };
+
   return (
     <div className={`relative min-h-screen bg-background`}>
       {!showFullScreen ? (
@@ -878,17 +901,17 @@ export default function HeroSection() {
                       />
                     </div>
                   ) : (
-                    <div className="text-center px-4 sm:px-8 w-full">
+                    <div className="text-center px-4 sm:px-8 w-full h-full flex items-center justify-center">
                       <p
-                        className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center`}
-                        style={{ fontSize: `${globalFontSize}px` }}
+                        className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
+                        style={{ fontSize: `${globalFontSize}px`, fontFamily: '"Noto Sans Arabic", sans-serif', fontWeight: 900 }}
                       >
                         {formatContent(selectedItem)[currentSlide]}
                       </p>
                     </div>
                   )
                 ) : (
-                  <div className="w-full h-full overflow-y-auto px-4 sm:px-8 py-10 sm:py-12">
+                  <div className="w-full h-full overflow-y-auto px-4 sm:px-8 py-10 sm:py-12 flex flex-col items-center">
                     {formatContent(selectedItem).map((content, index) =>
                       content === "SITE_ICON_SLIDE" ? (
                         <div key={index} className="text-center mb-8">
@@ -901,8 +924,8 @@ export default function HeroSection() {
                       ) : (
                         <p
                           key={index}
-                          className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text mb-8 max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center`}
-                          style={{ fontSize: `${globalFontSize}px` }}
+                          className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text mb-8 max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
+                          style={{ fontSize: `${globalFontSize}px`, fontFamily: '"Noto Sans Arabic", sans-serif', fontWeight: 900 }}
                         >
                           {content}
                         </p>
@@ -911,10 +934,10 @@ export default function HeroSection() {
                   </div>
                 )
               ) : (
-                <div className="text-center px-4 sm:px-8 w-full">
+                <div className="text-center px-4 sm:px-8 w-full h-full flex items-center justify-center">
                   <p
-                    className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center`}
-                    style={{ fontSize: `${globalFontSize}px` }}
+                    className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
+                    style={{ fontSize: `${globalFontSize}px`, fontFamily: '"Noto Sans Arabic", sans-serif', fontWeight: 900 }}
                   >
                     لا يوجد محتوى محدد
                   </p>
@@ -1073,7 +1096,7 @@ export default function HeroSection() {
                             </div>
                             <Slider
                               min={24}
-                              max={96}
+                              max={120}
                               step={2}
                               value={[globalFontSize]}
                               onValueChange={(value) =>
@@ -1215,7 +1238,7 @@ export default function HeroSection() {
 
                           <div className="pt-4 border-t border-gray-500">
                             <div className="flex items-center gap-2 mb-2">
-                              <Upload className="h-4 w24 text-gray-400" />
+                              <Upload className="h-4 w-4 text-gray-400" />
                               <div className="font-bold text-white text-sm">
                                 صورة في الخلفية
                               </div>
@@ -1297,7 +1320,7 @@ export default function HeroSection() {
                       </Tabs>
                       <Button
                         className="w-full mt-6 text-xs xs:text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
-                        onClick={() => setShowSettings(false)}
+                        onClick={saveSettings}
                       >
                         حفظ الإعدادات
                       </Button>
@@ -1357,21 +1380,18 @@ export default function HeroSection() {
                 </button>
 
                 <span className="text-white font-semibold">
-                  {currentSlide + 1} /{" "}
-                  {selectedItem ? formatContent(selectedItem).length : 1}
+                  {currentSlide + 1} / {selectedItem ? formatContent(selectedItem).length : 1}
                 </span>
 
                 <button
                   onClick={handleNextSlide}
                   className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
-                    !selectedItem ||
-                    currentSlide === formatContent(selectedItem).length - 1
+                    selectedItem && currentSlide === formatContent(selectedItem).length - 1
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:bg-white/20"
                   }`}
                   disabled={
-                    !selectedItem ||
-                    currentSlide === formatContent(selectedItem).length - 1
+                    selectedItem && currentSlide === formatContent(selectedItem).length - 1
                   }
                   aria-label="الشريحة التالية"
                 >
