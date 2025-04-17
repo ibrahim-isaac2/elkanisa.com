@@ -1,4 +1,3 @@
-// components/text-bible.tsx
 "use client";
 
 import type React from "react";
@@ -182,8 +181,9 @@ export default function TextBible() {
     const style = document.createElement("style");
     style.textContent = `
       .arabic-text {
-        font-family: 'Scheherazade New', 'Amiri', 'Traditional Arabic', serif;
-        text-align: right;
+        font-family: 'Noto Sans Arabic', sans-serif;
+        font-weight: 900;
+        text-align: center;
         direction: rtl;
         word-spacing: 0.1em;
         -webkit-font-smoothing: antialiased;
@@ -197,7 +197,7 @@ export default function TextBible() {
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href =
-      "https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap";
+      "https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&display=swap";
     document.head.appendChild(link);
 
     return () => {
@@ -221,7 +221,13 @@ export default function TextBible() {
   const [showSettings, setShowSettings] = useState(false);
   const [activeTab, setActiveTab] = useState("theme");
   const [currentTextColor, setCurrentTextColor] = useState(textColors[0]);
-  const [globalFontSize, setGlobalFontSize] = useState(48);
+  const [globalFontSize, setGlobalFontSize] = useState(() => {
+    if (typeof window !== "undefined") {
+      const savedFontSize = localStorage.getItem("globalFontSize");
+      return savedFontSize ? parseInt(savedFontSize, 10) : 48; // حجم افتراضي أصغر
+    }
+    return 48;
+  });
   const [watermark, setWatermark] = useState("");
   const [watermarkColor, setWatermarkColor] = useState(textColors[0]);
   const [watermarkFontSize, setWatermarkFontSize] = useState(20);
@@ -238,6 +244,10 @@ export default function TextBible() {
   const [autoAdvance, setAutoAdvance] = useState(false);
   const [autoAdvanceInterval, setAutoAdvanceInterval] = useState(10);
   const [lineSpacing, setLineSpacing] = useState(1.8);
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const [imagePositionX, setImagePositionX] = useState(50);
+  const [imagePositionY, setImagePositionY] = useState(50);
+  const [imageSize, setImageSize] = useState(50);
 
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
@@ -271,11 +281,20 @@ export default function TextBible() {
     const setInitialFontSize = () => {
       const width = window.innerWidth;
       if (width < 640) {
-        setGlobalFontSize(32);
+        setGlobalFontSize((prev) => {
+          const savedFontSize = localStorage.getItem("globalFontSize");
+          return savedFontSize ? parseInt(savedFontSize, 10) : 36;
+        });
       } else if (width >= 640 && width < 1024) {
-        setGlobalFontSize(48);
+        setGlobalFontSize((prev) => {
+          const savedFontSize = localStorage.getItem("globalFontSize");
+          return savedFontSize ? parseInt(savedFontSize, 10) : 48;
+        });
       } else {
-        setGlobalFontSize(64);
+        setGlobalFontSize((prev) => {
+          const savedFontSize = localStorage.getItem("globalFontSize");
+          return savedFontSize ? parseInt(savedFontSize, 10) : 64;
+        });
       }
     };
 
@@ -340,7 +359,7 @@ export default function TextBible() {
         .sort((a, b) => a.verse - b.verse)
         .map(
           (verse) =>
-            `${verse.book_name} ${verse.chapter}:${verse.verse} - ${verse.text}`,
+            `${verse.book_name} ${verse.chapter}:${verse.verse}\n${verse.text}`,
         );
       if (verses.length > 0) {
         setChapterText(verses);
@@ -457,21 +476,23 @@ export default function TextBible() {
   }, [isListening, recognition]);
 
   useEffect(() => {
-    const savedSearches = localStorage.getItem("recentBibleSearches");
-    if (savedSearches) {
-      try {
-        setRecentBibleSearches(JSON.parse(savedSearches));
-      } catch (e) {
-        console.error("Failed to parse recent Bible searches", e);
+    if (typeof window !== "undefined") {
+      const savedSearches = localStorage.getItem("recentBibleSearches");
+      if (savedSearches) {
+        try {
+          setRecentBibleSearches(JSON.parse(savedSearches));
+        } catch (e) {
+          console.error("Failed to parse recent Bible searches", e);
+        }
       }
-    }
 
-    const savedFavorites = localStorage.getItem("favoriteBibleChapters");
-    if (savedFavorites) {
-      try {
-        setFavoriteBibleChapters(JSON.parse(savedFavorites));
-      } catch (e) {
-        console.error("Failed to parse favorite Bible chapters", e);
+      const savedFavorites = localStorage.getItem("favoriteBibleChapters");
+      if (savedFavorites) {
+        try {
+          setFavoriteBibleChapters(JSON.parse(savedFavorites));
+        } catch (e) {
+          console.error("Failed to parse favorite Bible chapters", e);
+        }
       }
     }
   }, []);
@@ -481,7 +502,9 @@ export default function TextBible() {
 
     setRecentBibleSearches((prev) => {
       const newSearches = [query, ...prev.filter((s) => s !== query)].slice(0, 5);
-      localStorage.setItem("recentBibleSearches", JSON.stringify(newSearches));
+      if (typeof window !== "undefined") {
+        localStorage.setItem("recentBibleSearches", JSON.stringify(newSearches));
+      }
       return newSearches;
     });
   };
@@ -571,6 +594,30 @@ export default function TextBible() {
     }
   };
 
+  const handleUploadImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const validImageTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/bmp",
+        "image/tiff",
+      ];
+      if (!validImageTypes.includes(file.type)) {
+        alert("يرجى اختيار ملف صورة (مثل PNG، JPG، GIF، إلخ).");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setBackgroundImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (!showFullScreen || !chapterText.length) return;
@@ -630,15 +677,43 @@ export default function TextBible() {
         const newFavorites = prev.includes(bookChapter)
           ? prev.filter((fav) => fav !== bookChapter)
           : [...prev, bookChapter];
-        localStorage.setItem(
-          "favoriteBibleChapters",
-          JSON.stringify(newFavorites),
-        );
+        if (typeof window !== "undefined") {
+          localStorage.setItem(
+            "favoriteBibleChapters",
+            JSON.stringify(newFavorites),
+          );
+        }
         return newFavorites;
       });
     },
     [],
   );
+
+  const saveSettings = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("globalFontSize", globalFontSize.toString());
+    }
+    setShowSettings(false);
+  };
+
+  // دالة لحساب حجم الخط ديناميكيًا بناءً على طول النص
+  const calculateDynamicFontSize = (text: string) => {
+    const textLength = text.length;
+    const baseFontSize = globalFontSize; // حجم الخط الأساسي المحدد من السلايدر
+    const minFontSize = 20; // الحد الأدنى لحجم الخط
+    const maxFontSize = 96; // الحد الأقصى لحجم الخط
+
+    // إذا كان النص قصيرًا جدًا (أقل من 50 حرفًا)، نكبر الخط
+    if (textLength < 50) {
+      return Math.min(baseFontSize * 1.2, maxFontSize); // زيادة بنسبة 20%
+    }
+    // إذا كان النص طويلًا جدًا (أكثر من 200 حرف)، نصغر الخط
+    else if (textLength > 200) {
+      return Math.max(baseFontSize * 0.8, minFontSize); // تقليل بنسبة 20%
+    }
+    // إذا كان النص متوسطًا (بين 50 و200 حرف)، نستخدم حجم الخط الأساسي
+    return baseFontSize;
+  };
 
   return (
     <div
@@ -908,6 +983,22 @@ export default function TextBible() {
             {currentTheme.isCustom && currentTheme.customUrl && (
               <div className="absolute inset-0 bg-black/50 z-10" />
             )}
+            {backgroundImage && (
+              <img
+                src={backgroundImage}
+                alt="Background Image"
+                className="absolute z-15"
+                style={{
+                  left: `${imagePositionX}%`,
+                  top: `${imagePositionY}%`,
+                  transform: "translate(-50%, -50%)",
+                  width: `${imageSize}%`,
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                  objectFit: "contain",
+                }}
+              />
+            )}
 
             <motion.div
               key={currentSlide}
@@ -918,28 +1009,34 @@ export default function TextBible() {
             >
               {chapterText.length > 0 ? (
                 displayMode === "slides" ? (
-                  <div className="text-center px-4 sm:px-8 w-full">
+                  <div className="text-center px-4 sm:px-8 w-full h-full flex items-center justify-center">
                     <p
-                      className={`font-extrabold ${currentTextColor.class} whitespace-pre-line arabic-text max-w-[90vw] xs:max-w-4xl sm:max-w-5xl md:max-w-6xl mx-auto responsive-text`}
+                      className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
                       style={{
-                        fontSize: `${globalFontSize}px`,
+                        fontSize: `${
+                          chapterText[currentSlide]
+                            ? calculateDynamicFontSize(chapterText[currentSlide])
+                            : globalFontSize
+                        }px`,
                         lineHeight: `${lineSpacing}`,
-                        letterSpacing: "0.5px",
+                        fontFamily: '"Noto Sans Arabic", sans-serif',
+                        fontWeight: 900,
                       }}
                     >
                       {chapterText[currentSlide]}
                     </p>
                   </div>
                 ) : (
-                  <div className="w-full h-full overflow-y-auto px-4 sm:px-8 py-10 sm:py-12">
+                  <div className="w-full h-full overflow-y-auto px-4 sm:px-8 py-10 sm:py-12 flex flex-col items-center">
                     {chapterText.map((text, index) => (
                       <p
                         key={index}
-                        className={`font-extrabold ${currentTextColor.class} whitespace-pre-line arabic-text mb-8 max-w-[90vw] xs:max-w-4xl sm:max-w-5xl md:max-w-6xl mx-auto responsive-text`}
+                        className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text mb-8 max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
                         style={{
-                          fontSize: `${globalFontSize}px`,
+                          fontSize: `${calculateDynamicFontSize(text)}px`,
                           lineHeight: `${lineSpacing}`,
-                          letterSpacing: "0.5px",
+                          fontFamily: '"Noto Sans Arabic", sans-serif',
+                          fontWeight: 900,
                         }}
                       >
                         {text}
@@ -948,13 +1045,14 @@ export default function TextBible() {
                   </div>
                 )
               ) : (
-                <div className="text-center px-4 sm:px-8 w-full">
+                <div className="text-center px-4 sm:px-8 w-full h-full flex items-center justify-center">
                   <p
-                    className={`font-extrabold ${currentTextColor.class} whitespace-pre-line arabic-text max-w-[90vw] xs:max-w-4xl sm:max-w-5xl md:max-w-6xl mx-auto responsive-text`}
+                    className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
                     style={{
                       fontSize: `${globalFontSize}px`,
                       lineHeight: `${lineSpacing}`,
-                      letterSpacing: "0.5px",
+                      fontFamily: '"Noto Sans Arabic", sans-serif',
+                      fontWeight: 900,
                     }}
                   >
                     لا يوجد محتوى لعرضه
@@ -1109,7 +1207,7 @@ export default function TextBible() {
                               </Label>
                             </div>
                             <Slider
-                              min={24}
+                              min={20}
                               max={96}
                               step={2}
                               value={[globalFontSize]}
@@ -1261,6 +1359,87 @@ export default function TextBible() {
                           )}
 
                           <div className="pt-4 border-t border-gray-500">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Upload className="h-4 w-4 text-gray-400" />
+                              <div className="font-bold text-white text-sm">
+                                صورة في الخلفية
+                              </div>
+                            </div>
+                            <Button
+                              onClick={() => fileInputRef.current?.click()}
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs xs:text-sm transition-colors duration-200"
+                              size="sm"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              اختيار صورة
+                            </Button>
+                            <input
+                              type="file"
+                              ref={fileInputRef}
+                              accept="image/*"
+                              onChange={handleUploadImage}
+                              className="hidden"
+                            />
+
+                            {backgroundImage && (
+                              <>
+                                <div className="space-y-2 mt-4">
+                                  <Label className="text-xs xs:text-sm text-white font-semibold">
+                                    الموضع الأفقي: {imagePositionX}%
+                                  </Label>
+                                  <Slider
+                                    min={0}
+                                    max={100}
+                                    step={1}
+                                    value={[imagePositionX]}
+                                    onValueChange={(value) =>
+                                      setImagePositionX(value[0])
+                                    }
+                                    className="w-full"
+                                  />
+                                </div>
+                                <div className="space-y-2 mt-4">
+                                  <Label className="text-xs xs:text-sm text-white font-semibold">
+                                    الموضع العمودي: {imagePositionY}%
+                                  </Label>
+                                  <Slider
+                                    min={0}
+                                    max={100}
+                                    step={1}
+                                    value={[imagePositionY]}
+                                    onValueChange={(value) =>
+                                      setImagePositionY(value[0])
+                                    }
+                                    className="w-full"
+                                  />
+                                </div>
+                                <div className="space-y-2 mt-4">
+                                  <Label className="text-xs xs:text-sm text-white font-semibold">
+                                    الحجم: {imageSize}%
+                                  </Label>
+                                  <Slider
+                                    min={10}
+                                    max={100}
+                                    step={1}
+                                    value={[imageSize]}
+                                    onValueChange={(value) =>
+                                      setImageSize(value[0])
+                                    }
+                                    className="w-full"
+                                  />
+                                </div>
+                                <Button
+                                  onClick={() => setBackgroundImage(null)}
+                                  className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white text-xs xs:text-sm transition-colors duration-200"
+                                  size="sm"
+                                >
+                                  إزالة الصورة
+                                </Button>
+                              </>
+                            )}
+                          </div>
+
+                          <div className="pt-4 border-t border-gray-500">
                             <div className="flex items-center gap-2 mb-4">
                               <Info className="h-4 w-4 text-gray-400" />
                               <div className="font-bold text-white text-sm">
@@ -1277,7 +1456,7 @@ export default function TextBible() {
                       </Tabs>
                       <Button
                         className="w-full mt-6 text-xs xs:text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
-                        onClick={() => setShowSettings(false)}
+                        onClick={saveSettings}
                       >
                         حفظ الإعدادات
                       </Button>
@@ -1309,8 +1488,8 @@ export default function TextBible() {
                             favoriteBibleChapters.includes(
                               `${selectedBook}:${selectedChapter}`,
                             )
-                              ? "fill-red-500"
-                              : ""
+                              ? "fill-red-500 text-red-500"
+                              : "text-white"
                           }`}
                         />
                       </button>
@@ -1356,13 +1535,41 @@ export default function TextBible() {
               </div>
             </div>
 
-            <div className="fixed bottom-8 xs:bottom-10 sm:bottom-12 left-0 right-0 flex justify-center items-center px-6 xs:px-8 sm:px-12 z-30">
-              <span className="text-white text-base xs:text-lg sm:text-xl font-medium bg-black/50 px-3 xs:px-4 sm:px-6 py-1 xs:py-2 rounded-full">
-                {chapterText.length > 0
-                  ? `${currentSlide + 1} / ${chapterText.length}`
-                  : "0 / 0"}
-              </span>
-            </div>
+            {displayMode === "slides" && (
+              <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 sm:gap-6 z-30">
+                <button
+                  onClick={previousSlide}
+                  className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
+                    currentSlide === 0
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-white/20"
+                  }`}
+                  disabled={currentSlide === 0}
+                  aria-label="الشريحة السابقة"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+
+                <span className="text-white font-semibold">
+                  {chapterText.length > 0
+                    ? `${currentSlide + 1} / ${chapterText.length}`
+                    : "0 / 0"}
+                </span>
+
+                <button
+                  onClick={nextSlide}
+                  className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
+                    currentSlide === chapterText.length - 1
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-white/20"
+                  }`}
+                  disabled={currentSlide === chapterText.length - 1}
+                  aria-label="الشريحة التالية"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
       )}
