@@ -1,4 +1,3 @@
-// components/PowerPointSection.tsx
 "use client";
 
 import type React from "react";
@@ -9,28 +8,8 @@ export default function PowerPointSection(): JSX.Element {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPath, setCurrentPath] = useState<string>("");
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-  const [fileCategories] = useState<{ [key: string]: string[] }>({
-    الاجبية: [],
-    "البصخة المقدسة": [],
-    القداسات: [],
-    "تسبحة نص الليل": [],
-    "تمجيد القديسين": [],
-    "شهر كيهك": [],
-    "قراءات شهر بابة": [],
-    "قراءات شهر ابيب": [],
-    "قراءات شهر بشنس": [],
-    "قراءات شهر بؤونة": [],
-    "قراءات شهر توت": [],
-    "قراءات شهر كيهك": [],
-    "قراءات شهر مسرى": [],
-    "قراءات شهر نسىء": [],
-    "قراءات شهر هاتور": [],
-    "قرآت شهر امشير": [],
-    "قرآت شهر برمهات": [],
-    "قرآت شهر طوبة": [],
-    الألحان: [],
-  });
-  const [items, setItems] = useState<{ name: string; type: string }[]>([]);
+  const [fileStructure, setFileStructure] = useState<any>(null);
+  const [items, setItems] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(-1);
@@ -38,6 +17,42 @@ export default function PowerPointSection(): JSX.Element {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
+
+  useEffect(() => {
+    const fetchFileStructure = async () => {
+      try {
+        const response = await fetch('/files.json');
+        const data = await response.json();
+        setFileStructure(data);
+      } catch (err) {
+        setError('فشل في جلب هيكل الملفات.');
+      }
+    };
+    fetchFileStructure();
+  }, []);
+
+  useEffect(() => {
+    const getCurrentItems = () => {
+      if (!fileStructure) return [];
+      let current = fileStructure;
+      const pathParts = currentPath.split('/').filter(Boolean);
+      for (const part of pathParts) {
+        const child = current.children.find((c: any) => c.name === part);
+        if (child && child.type === 'folder') {
+          current = child;
+        } else {
+          return [];
+        }
+      }
+      return current.children || [];
+    };
+
+    const currentItems = getCurrentItems();
+    const filtered = currentItems.filter((item: any) =>
+      searchTerm.trim() === '' ? true : item.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setItems(filtered);
+  }, [currentPath, searchTerm, fileStructure]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -49,46 +64,27 @@ export default function PowerPointSection(): JSX.Element {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const response = await fetch(`/api/files/${encodeURIComponent(currentPath || Object.keys(fileCategories)[0])}`);
-        if (!response.ok) {
-          throw new Error("فشل في جلب العناصر");
-        }
-        const data: { name: string; type: string }[] = await response.json();
-        const filtered = data.filter((item) =>
-          searchTerm.trim() === "" ? true : item.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setItems(filtered);
-      } catch (err) {
-        setError("فشل في جلب العناصر من الخادم.");
-      }
-    };
-
-    if (currentPath || !currentPath) fetchItems();
-  }, [currentPath, searchTerm, fileCategories]);
-
-  const handleItemClick = (item: { name: string; type: string }, index: number) => {
-    if (item.type === "folder") {
+  const handleItemClick = (item: any) => {
+    if (item.type === 'folder') {
       setCurrentPath(currentPath ? `${currentPath}/${item.name}` : item.name);
-    } else if (item.type === "image") {
-      setSelectedImage(`/orzozox/${currentPath}/${item.name}`);
-      setSelectedImageIndex(index);
+    } else if (item.type === 'file') {
+      const imageUrl = `${process.env.NEXT_PUBLIC_R2_URL}/${currentPath}/${item.name}`;
+      setSelectedImage(imageUrl);
+      setSelectedImageIndex(items.findIndex((i: any) => i.name === item.name));
       try {
         if (document.documentElement.requestFullscreen) {
           document.documentElement.requestFullscreen();
         }
       } catch (err) {
-        console.error("Error attempting to enable full-screen mode:", err);
+        console.error('Error attempting to enable full-screen mode:', err);
       }
     }
   };
 
   const goBack = () => {
-    const pathParts = currentPath.split("/");
+    const pathParts = currentPath.split('/');
     pathParts.pop();
-    setCurrentPath(pathParts.join("/"));
+    setCurrentPath(pathParts.join('/'));
   };
 
   const exitFullScreen = () => {
@@ -96,25 +92,27 @@ export default function PowerPointSection(): JSX.Element {
     setSelectedImageIndex(-1);
     if (document.fullscreenElement) {
       document.exitFullscreen().catch((err) => {
-        console.error("Error attempting to exit full-screen mode:", err);
+        console.error('Error attempting to exit full-screen mode:', err);
       });
     }
   };
 
   const showNextImage = () => {
-    const imageItems = items.filter((item) => item.type === "image");
+    const imageItems = items.filter((item: any) => item.type === 'file');
     if (selectedImageIndex < imageItems.length - 1) {
       const nextIndex = selectedImageIndex + 1;
-      setSelectedImage(`/orzozox/${currentPath}/${imageItems[nextIndex].name}`);
+      const nextItem = imageItems[nextIndex];
+      setSelectedImage(`${process.env.NEXT_PUBLIC_R2_URL}/${currentPath}/${nextItem.name}`);
       setSelectedImageIndex(nextIndex);
     }
   };
 
   const showPreviousImage = () => {
-    const imageItems = items.filter((item) => item.type === "image");
+    const imageItems = items.filter((item: any) => item.type === 'file');
     if (selectedImageIndex > 0) {
       const prevIndex = selectedImageIndex - 1;
-      setSelectedImage(`/orzozox/${currentPath}/${imageItems[prevIndex].name}`);
+      const prevItem = imageItems[prevIndex];
+      setSelectedImage(`${process.env.NEXT_PUBLIC_R2_URL}/${currentPath}/${prevItem.name}`);
       setSelectedImageIndex(prevIndex);
     }
   };
@@ -122,17 +120,17 @@ export default function PowerPointSection(): JSX.Element {
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (!selectedImage) return;
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         exitFullScreen();
-      } else if (event.key === "ArrowRight") {
+      } else if (event.key === 'ArrowRight') {
         showNextImage();
-      } else if (event.key === "ArrowLeft") {
+      } else if (event.key === 'ArrowLeft') {
         showPreviousImage();
       }
     };
 
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
   }, [selectedImage, selectedImageIndex, items, currentPath]);
 
   // Swipe detection for mobile
@@ -156,7 +154,7 @@ export default function PowerPointSection(): JSX.Element {
   };
 
   useEffect(() => {
-    const style = document.createElement("style");
+    const style = document.createElement('style');
     style.textContent = `
       .arabic-text {
         font-family: 'Scheherazade New', 'Amiri', 'Traditional Arabic', serif;
@@ -170,9 +168,9 @@ export default function PowerPointSection(): JSX.Element {
       }
     `;
     document.head.appendChild(style);
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap";
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap';
     document.head.appendChild(link);
     return () => {
       document.head.removeChild(style);
@@ -181,7 +179,7 @@ export default function PowerPointSection(): JSX.Element {
   }, []);
 
   const removeFileExtension = (fileName: string) => {
-    return fileName.replace(/\.[^/.]+$/, "");
+    return fileName.replace(/\.[^/.]+$/, '');
   };
 
   if (error) {
@@ -195,12 +193,12 @@ export default function PowerPointSection(): JSX.Element {
 
   return (
     <section
-      className={`${isDark ? "bg-gray-900" : "bg-gray-100"} p-4 xs:p-6 rounded-lg shadow-md max-w-4xl mx-auto transition-colors duration-300 min-h-[calc(100vh-300px)] relative mb-20`}
+      className={`${isDark ? 'bg-gray-900' : 'bg-gray-100'} p-4 xs:p-6 rounded-lg shadow-md max-w-4xl mx-auto transition-colors duration-300 min-h-[calc(100vh-300px)] relative mb-20`}
     >
       <div className="flex justify-between items-center mb-6 xs:mb-8">
         <button
           onClick={() => setIsDark(!isDark)}
-          className={`p-2 rounded-full ${isDark ? "bg-gray-800 hover:bg-gray-700" : "bg-white hover:bg-gray-200"} transition-colors shadow-md`}
+          className={`p-2 rounded-full ${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-200'} transition-colors shadow-md`}
         >
           {isDark ? (
             <svg
@@ -235,7 +233,7 @@ export default function PowerPointSection(): JSX.Element {
           )}
         </button>
         <h2
-          className={`text-2xl xs:text-3xl font-bold text-center ${isDark ? "text-white" : "text-gray-800"} bg-clip-text text-transparent bg-gradient-to-r ${isDark ? "from-blue-400 to-purple-500" : "from-blue-600 to-purple-700"}`}
+          className={`text-2xl xs:text-3xl font-bold text-center ${isDark ? 'text-white' : 'text-gray-800'} bg-clip-text text-transparent bg-gradient-to-r ${isDark ? 'from-blue-400 to-purple-500' : 'from-blue-600 to-purple-700'}`}
         >
           الكنيسة القبطية الأرثوذكسية
         </h2>
@@ -245,14 +243,14 @@ export default function PowerPointSection(): JSX.Element {
       <div className="mb-6 xs:mb-8 relative" ref={dropdownRef}>
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className={`w-full flex items-center justify-between p-3 xs:p-4 rounded-xl shadow-lg transition-all duration-300 ${isDark ? "bg-gradient-to-r from-gray-800 to-gray-900 text-white hover:from-gray-700 hover:to-gray-800" : "bg-gradient-to-r from-white to-gray-100 text-gray-800 hover:from-gray-100 hover:to-gray-200"} ${isDropdownOpen ? "ring-2 ring-blue-500" : ""}`}
+          className={`w-full flex items-center justify-between p-3 xs:p-4 rounded-xl shadow-lg transition-all duration-300 ${isDark ? 'bg-gradient-to-r from-gray-800 to-gray-900 text-white hover:from-gray-700 hover:to-gray-800' : 'bg-gradient-to-r from-white to-gray-100 text-gray-800 hover:from-gray-100 hover:to-gray-200'} ${isDropdownOpen ? 'ring-2 ring-blue-500' : ''}`}
         >
           <div className="flex items-center">
-            <ImageIcon className={`h-5 xs:h-6 w-5 xs:w-6 mr-3 ${isDark ? "text-blue-400" : "text-blue-600"}`} />
-            <span className="text-base xs:text-lg font-medium">{currentPath || "اختر الفئة"}</span>
+            <ImageIcon className={`h-5 xs:h-6 w-5 xs:w-6 mr-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+            <span className="text-base xs:text-lg font-medium">{currentPath || 'اختر الفئة'}</span>
           </div>
           <svg
-            className={`h-5 w-5 transition-transform ${isDropdownOpen ? "transform rotate-180" : ""}`}
+            className={`h-5 w-5 transition-transform ${isDropdownOpen ? 'transform rotate-180' : ''}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -262,22 +260,22 @@ export default function PowerPointSection(): JSX.Element {
           </svg>
         </button>
 
-        {isDropdownOpen && (
+        {isDropdownOpen && fileStructure && (
           <div
-            className={`absolute z-50 mt-2 w-full rounded-xl shadow-2xl overflow-hidden transition-all duration-300 ${isDark ? "bg-gray-800 border border-gray-700" : "bg-white border border-gray-200"}`}
+            className={`absolute z-50 mt-2 w-full rounded-xl shadow-2xl overflow-hidden transition-all duration-300 ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}
           >
             <div className="max-h-80 overflow-y-auto py-2 mb-4">
-              {Object.keys(fileCategories).map((category) => (
+              {fileStructure.children.map((category: any) => (
                 <button
-                  key={category}
-                  className={`w-full flex items-center px-4 py-3 text-right ${isDark ? "text-white hover:bg-gray-700" : "text-gray-800 hover:bg-gray-100"} ${currentPath.startsWith(category) ? isDark ? "bg-gray-700" : "bg-gray-100" : ""} transition-colors`}
+                  key={category.name}
+                  className={`w-full flex items-center px-4 py-3 text-right ${isDark ? 'text-white hover:bg-gray-700' : 'text-gray-800 hover:bg-gray-100'} ${currentPath.startsWith(category.name) ? isDark ? 'bg-gray-700' : 'bg-gray-100' : ''} transition-colors`}
                   onClick={() => {
-                    setCurrentPath(category);
+                    setCurrentPath(category.name);
                     setIsDropdownOpen(false);
                   }}
                 >
-                  <Folder className={`h-5 w-5 mr-3 ${isDark ? "text-blue-400" : "text-blue-600"}`} />
-                  <span className="text-sm xs:text-base">{category}</span>
+                  <Folder className={`h-5 w-5 mr-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+                  <span className="text-sm xs:text-base">{category.name}</span>
                 </button>
               ))}
             </div>
@@ -288,7 +286,7 @@ export default function PowerPointSection(): JSX.Element {
       {currentPath && (
         <button
           onClick={goBack}
-          className={`mb-4 xs:mb-6 flex items-center p-3 rounded-xl ${isDark ? "bg-gray-800 text-white hover:bg-gray-700" : "bg-white text-gray-800 hover:bg-gray-200"} transition-colors`}
+          className={`mb-4 xs:mb-6 flex items-center p-3 rounded-xl ${isDark ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-white text-gray-800 hover:bg-gray-200'} transition-colors`}
         >
           <ChevronRight className="h-5 w-5 ml-2" />
           العودة
@@ -299,54 +297,54 @@ export default function PowerPointSection(): JSX.Element {
         <>
           <div className="mb-4 xs:mb-6 relative">
             <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-              <Search className={`h-5 w-5 ${isDark ? "text-blue-400" : "text-blue-600"}`} />
+              <Search className={`h-5 w-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
             </div>
             <input
               type="text"
               placeholder="ابحث في الأسماء..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full p-3 xs:p-4 pr-12 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? "bg-gray-800 text-white placeholder-gray-400 border border-gray-700" : "bg-white text-gray-800 placeholder-gray-500 border border-gray-200"} text-right transition-all duration-300 text-sm xs:text-base`}
+              className={`w-full p-3 xs:p-4 pr-12 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${isDark ? 'bg-gray-800 text-white placeholder-gray-400 border border-gray-700' : 'bg-white text-gray-800 placeholder-gray-500 border border-gray-200'} text-right transition-all duration-300 text-sm xs:text-base`}
               dir="rtl"
             />
           </div>
 
           <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4">
             {items.length > 0 ? (
-              items.map((item, index) => (
+              items.map((item: any, index: number) => (
                 <div
                   key={item.name}
-                  className={`relative overflow-hidden rounded-xl shadow-lg cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl ${isDark ? "bg-gradient-to-br from-gray-800 to-gray-900" : "bg-gradient-to-br from-white to-gray-100"}`}
-                  onClick={() => handleItemClick(item, index)}
+                  className={`relative overflow-hidden rounded-xl shadow-lg cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl ${isDark ? 'bg-gradient-to-br from-gray-800 to-gray-900' : 'bg-gradient-to-br from-white to-gray-100'}`}
+                  onClick={() => handleItemClick(item)}
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <div className={`absolute top-0 left-0 w-2 h-full ${isDark ? "bg-gradient-to-b from-blue-500 to-purple-600" : "bg-gradient-to-b from-blue-600 to-purple-700"}`}></div>
+                  <div className={`absolute top-0 left-0 w-2 h-full ${isDark ? 'bg-gradient-to-b from-blue-500 to-purple-600' : 'bg-gradient-to-b from-blue-600 to-purple-700'}`}></div>
                   <div className="p-4 xs:p-5 rtl">
                     <div className="flex items-center mb-3">
-                      {item.type === "folder" ? (
-                        <Folder className={`h-5 xs:h-6 w-5 xs:w-6 ml-3 ${isDark ? "text-blue-400" : "text-blue-600"}`} />
+                      {item.type === 'folder' ? (
+                        <Folder className={`h-5 xs:h-6 w-5 xs:w-6 ml-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                       ) : (
-                        <ImageIcon className={`h-5 xs:h-6 w-5 xs:w-6 ml-3 ${isDark ? "text-blue-400" : "text-blue-600"}`} />
+                        <ImageIcon className={`h-5 xs:h-6 w-5 xs:w-6 ml-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                       )}
-                      <h3 className={`text-base xs:text-lg font-bold truncate ${isDark ? "text-white" : "text-gray-800"}`}>{removeFileExtension(item.name)}</h3>
+                      <h3 className={`text-base xs:text-lg font-bold truncate ${isDark ? 'text-white' : 'text-gray-800'}`}>{removeFileExtension(item.name)}</h3>
                     </div>
-                    <div className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                      {item.type === "folder" ? "مجلد" : "صورة"}
+                    <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {item.type === 'folder' ? 'مجلد' : 'صورة'}
                     </div>
-                    {item.type === "image" && (
+                    {item.type === 'file' && (
                       <img
-                        src={`/orzozox/${currentPath}/${item.name}`}
+                        src={`${process.env.NEXT_PUBLIC_R2_URL}/${currentPath}/${item.name}`}
                         alt={item.name}
                         className="mt-2 w-full h-32 object-cover rounded-md"
                         loading="lazy"
                       />
                     )}
                   </div>
-                  <div className={`absolute bottom-0 right-0 w-full h-1 ${isDark ? "bg-gradient-to-r from-purple-600 to-blue-500" : "bg-gradient-to-r from-purple-700 to-blue-600"}`}></div>
+                  <div className={`absolute bottom-0 right-0 w-full h-1 ${isDark ? 'bg-gradient-to-r from-purple-600 to-blue-500' : 'bg-gradient-to-r from-purple-700 to-blue-600'}`}></div>
                 </div>
               ))
             ) : (
-              <div className={`col-span-full p-6 xs:p-8 text-center rounded-xl shadow-lg ${isDark ? "bg-gray-800 text-gray-400" : "bg-white text-gray-500"}`}>
+              <div className={`col-span-full p-6 xs:p-8 text-center rounded-xl shadow-lg ${isDark ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-500'}`}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-12 w-12 mx-auto mb-4 opacity-50"
@@ -396,7 +394,7 @@ export default function PowerPointSection(): JSX.Element {
           )}
 
           {/* Next Button */}
-          {selectedImageIndex < items.filter((item) => item.type === "image").length - 1 && (
+          {selectedImageIndex < items.filter((item: any) => item.type === 'file').length - 1 && (
             <button
               className="absolute right-4 top-1/2 transform -translate-y-1/2 p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200 z-20"
               onClick={(e) => {
