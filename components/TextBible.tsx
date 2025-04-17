@@ -115,7 +115,7 @@ type Theme = {
 const themes: Theme[] = [
   {
     name: "افتراضي",
-    background: "bg-gradient-to-br from-indigo-900 to-purple-900",
+    background: "bg-black",
     text: "text-white",
   },
   {
@@ -171,9 +171,9 @@ const textColors = [
   { name: "أحمر", class: "text-red-500" },
   { name: "أخضر", class: "text-green-500" },
   { name: "أزرق", class: "text-blue-500" },
-  { name: "أصفر", class: "text-yellow-500" }, // إصلاح خاصية class بدل className
-  { name: "برتقالي", class: "text-orange-500" }, // إصلاح خاصية class بدل className
-  { name: "بنفسجي", class: "text-purple-500" }, // إصلاح خاصية class بدل className
+  { name: "أصفر", class: "text-yellow-500" },
+  { name: "برتقالي", class: "text-orange-500" },
+  { name: "بنفسجي", class: "text-purple-500" },
 ];
 
 export default function TextBible() {
@@ -188,7 +188,7 @@ export default function TextBible() {
         word-spacing: 0.1em;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        font-feature-settings: 'liga' on, 'calt'线的;
+        font-feature-settings: 'liga' on, 'calt' on;
         text-rendering: optimizeLegibility;
       }
     `;
@@ -1139,7 +1139,7 @@ export default function TextBible() {
                                 الشعار
                               </div>
                             </div>
-                            <input
+                            <Input
                               type="text"
                               value={watermark}
                               onChange={(e) => setWatermark(e.target.value)}
