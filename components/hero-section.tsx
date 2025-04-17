@@ -238,7 +238,6 @@ export default function HeroSection() {
     [fuse]
   );
 
-  // Debounce the search to prevent excessive updates
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -1216,7 +1215,7 @@ export default function HeroSection() {
 
                           <div className="pt-4 border-t border-gray-500">
                             <div className="flex items-center gap-2 mb-2">
-                              <Upload className="h-4 w-4 text-gray-400" />
+                              <Upload className="h-4 w24 text-gray-400" />
                               <div className="font-bold text-white text-sm">
                                 صورة في الخلفية
                               </div>
@@ -1358,18 +1357,21 @@ export default function HeroSection() {
                 </button>
 
                 <span className="text-white font-semibold">
-                  {currentSlide + 1} / {selectedItem ? formatContent(selectedItem).length : 1}
+                  {currentSlide + 1} /{" "}
+                  {selectedItem ? formatContent(selectedItem).length : 1}
                 </span>
 
                 <button
                   onClick={handleNextSlide}
                   className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
-                    selectedItem && currentSlide === formatContent(selectedItem).length - 1
+                    !selectedItem ||
+                    currentSlide === formatContent(selectedItem).length - 1
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:bg-white/20"
                   }`}
                   disabled={
-                    selectedItem && currentSlide === formatContent(selectedItem).length - 1
+                    !selectedItem ||
+                    currentSlide === formatContent(selectedItem).length - 1
                   }
                   aria-label="الشريحة التالية"
                 >
