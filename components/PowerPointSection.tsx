@@ -51,7 +51,26 @@ export default function PowerPointSection(): JSX.Element {
     const filtered = currentItems.filter((item: any) =>
       searchTerm.trim() === '' ? true : item.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    setItems(filtered);
+
+    // Debugging: Log items before sorting
+    console.log("Items before sorting:", filtered.map((item: any) => item.name));
+
+    // Sort items based on the number in the file name (e.g., Slide1.JPG, Slide10.JPG)
+    const sortedItems = [...filtered].sort((a: any, b: any) => {
+      const getNumber = (name: string) => {
+        // Match any number in the file name (e.g., Slide1.JPG -> 1, Slide10.JPG -> 10)
+        const match = name.match(/Slide(\d+)\.JPG/);
+        return match ? parseInt(match[1], 10) : Infinity; // Use Infinity for non-matching items to push them to the end
+      };
+      const numA = getNumber(a.name);
+      const numB = getNumber(b.name);
+      return numA - numB;
+    });
+
+    // Debugging: Log items after sorting
+    console.log("Items after sorting:", sortedItems.map((item: any) => item.name));
+
+    setItems(sortedItems);
   }, [currentPath, searchTerm, fileStructure]);
 
   useEffect(() => {
@@ -68,7 +87,7 @@ export default function PowerPointSection(): JSX.Element {
     if (item.type === 'folder') {
       setCurrentPath(currentPath ? `${currentPath}/${item.name}` : item.name);
     } else if (item.type === 'file') {
-      const imageUrl = `${process.env.NEXT_PUBLIC_R2_URL}/${currentPath}/${item.name}`;
+      const imageUrl = `${process.env.NEXT_PUBLIC_R2_URL3}/orzozox/${currentPath}/${item.name}`;
       setSelectedImage(imageUrl);
       setSelectedImageIndex(items.findIndex((i: any) => i.name === item.name));
       try {
@@ -102,7 +121,7 @@ export default function PowerPointSection(): JSX.Element {
     if (selectedImageIndex < imageItems.length - 1) {
       const nextIndex = selectedImageIndex + 1;
       const nextItem = imageItems[nextIndex];
-      setSelectedImage(`${process.env.NEXT_PUBLIC_R2_URL}/${currentPath}/${nextItem.name}`);
+      setSelectedImage(`${process.env.NEXT_PUBLIC_R2_URL3}/orzozox/${currentPath}/${nextItem.name}`);
       setSelectedImageIndex(nextIndex);
     }
   };
@@ -112,7 +131,7 @@ export default function PowerPointSection(): JSX.Element {
     if (selectedImageIndex > 0) {
       const prevIndex = selectedImageIndex - 1;
       const prevItem = imageItems[prevIndex];
-      setSelectedImage(`${process.env.NEXT_PUBLIC_R2_URL}/${currentPath}/${prevItem.name}`);
+      setSelectedImage(`${process.env.NEXT_PUBLIC_R2_URL3}/orzozox/${currentPath}/${prevItem.name}`);
       setSelectedImageIndex(prevIndex);
     }
   };
@@ -333,7 +352,7 @@ export default function PowerPointSection(): JSX.Element {
                     </div>
                     {item.type === 'file' && (
                       <img
-                        src={`${process.env.NEXT_PUBLIC_R2_URL}/${currentPath}/${item.name}`}
+                        src={`${process.env.NEXT_PUBLIC_R2_URL3}/orzozox/${currentPath}/${item.name}`}
                         alt={item.name}
                         className="mt-2 w-full h-32 object-cover rounded-md"
                         loading="lazy"
