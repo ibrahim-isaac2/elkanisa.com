@@ -1,0 +1,84 @@
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js');
+import { cacheAllMedia } from './offline-cache.ts';
+
+// حدث التثبيت لتخزين ملفات الصوت والفيديو
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    cacheAllMedia(
+      'https://pub-d84ec872e0d940018b402da80d54a407.r2.dev', // رابط الصوتيات
+      'https://pub-daf4aa025298493f8f6634fe32b8754b.r2.dev'  // رابط الفيديوهات
+    )
+  );
+});
+
+// تخزين الملفات الرئيسية أثناء التثبيت
+workbox.precaching.precacheAndRoute([
+  { url: '/', revision: '1' },
+  { url: '/_next/static/chunks/main.js', revision: '1' },
+  { url: '/_next/static/chunks/webpack.js', revision: '1' },
+  { url: '/_next/static/css/main.css', revision: '1' },
+  { url: '/manifest.json', revision: '1' },
+  { url: '/icon-192x192.png', revision: '1' },
+  { url: '/icon-512x512.png', revision: '1' },
+  { url: '/offline.html', revision: '1' },
+]);
+
+// كاش لملفات JSON من raw.githubusercontent.com
+workbox.routing.registerRoute(
+  ({ url }) => url.href.includes('raw.githubusercontent.com'),
+  new workbox.strategies.CacheFirst({
+    cacheName: 'json-files',
+    plugins: [
+      new workbox.cacheableResponse.CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+    ],
+  })
+);
+
+// كاش لملفات الصوتيات من R2
+workbox.routing.registerRoute(
+  ({ url }) => url.href.includes('pub-d84ec872e0d940018b402da80d54a407.r2.dev'),
+  new workbox.strategies.CacheFirst({
+    cacheName: 'audio-files',
+    plugins: [
+      new workbox.cacheableResponse.CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+    ],
+  })
+);
+
+// كاش لملفات الفيديوهات من R2
+workbox.routing.registerRoute(
+  ({ url }) => url.href.includes('pub-daf4aa025298493f8f6634fe32b8754b.r2.dev'),
+  new workbox.strategies.CacheFirst({
+    cacheName: 'video-files',
+    plugins: [
+      new workbox.cacheableResponse.CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+    ],
+  })
+);
+
+// كاش لمحتوى الموقع
+workbox.routing.registerRoute(
+  ({ url }) => url.origin === self.location.origin,
+  new workbox.strategies.NetworkFirst({
+    cacheName: 'site-content',
+    plugins: [
+      new workbox.cacheableResponse.CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+    ],
+  })
+);
+
+// التعامل مع الطلبات الفاشلة
+workbox.routing.setCatchHandler(({ event }) => {
+  return caches.match('/offline.html');
+});
+
+workbox.core.skipWaiting();
+workbox.core.clientsClaim();
