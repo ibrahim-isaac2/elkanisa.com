@@ -41,6 +41,7 @@ export default function InstallButton() {
       window.addEventListener("beforeinstallprompt", handler);
     } else {
       console.log("InstallButton: beforeinstallprompt event not supported in this browser.");
+      setIsSupported(true); // Force button to show even if not supported
     }
 
     // Listen for appinstalled event to confirm installation
@@ -74,7 +75,7 @@ export default function InstallButton() {
         <p className="fixed top-4 left-4 text-white">
           التطبيق مثبت بالفعل!
         </p>
-      ) : isSupported ? (
+      ) : (
         <Button
           variant="outline"
           className="fixed top-4 left-4 gap-2"
@@ -83,10 +84,6 @@ export default function InstallButton() {
           <Download className="w-4 h-4" />
           تثبيت
         </Button>
-      ) : (
-        <p className="fixed top-4 left-4 text-white">
-          زر التثبيت غير متاح. تأكد من إعدادات PWA أو جرب التفاعل مع الموقع.
-        </p>
       )}
     </div>
   );
