@@ -657,7 +657,7 @@ export default function HeroSection() {
         <div className="p-4 sm:p-6 w-full">
           <div className="flex flex-col items-center mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-center mb-2 text-foreground">
-              الترانيم والكتاب
+              الــــــتــــــرانــــــيــــــم 
             </h1>
             <p className="text-muted-foreground text-center max-w-md text-sm sm:text-base font-semibold">
               ابحث عن ترانيمك المفضلة واعرضها بطريقة احترافية
