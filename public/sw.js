@@ -21,6 +21,7 @@ workbox.precaching.precacheAndRoute([
   { url: '/icon-192x192.png', revision: '1' },
   { url: '/icon-512x512.png', revision: '1' },
   { url: '/offline.html', revision: '1' },
+  { url: '/end.png', revision: '1' },
 ]);
 
 // كاش لملفات JSON من raw.githubusercontent.com
