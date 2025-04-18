@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Instagram, Twitter, Facebook, Linkedin } from "lucide-react";
+import { Instagram, Facebook, Mail } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "@/app/ThemeContext";
 import { useEffect, useState } from "react";
@@ -60,9 +60,7 @@ export default function Footer() {
                 theme === "dark" ? "text-white" : "text-gray-700"
               } leading-relaxed`}
             >
-              تطبيق مساعد للخدام لعرض الترانيم والكتاب المقدس بطريقة احترافية
-              وسهل الاستخدام. يمكنك استخدام هذا التطبيق في اجتماعات الكنيسة
-              والخدمات المختلفة.
+            🏠 موقع elkanisa.com هو منصة متكاملة تقدم خدمات موجهة لخدام الكنائس، لتسهيل إدارة الأنشطة والخدمات المختلفة مثل الترانيم، الكتاب المقدس، وسجل الحضور. الموقع يتميز بسهولة الاستخدام وتقديم محتوى احترافي يناسب جميع احتياجات الكنائس.
             </p>
           </div>
 
@@ -107,25 +105,13 @@ export default function Footer() {
             <div className="flex gap-4 xs:gap-6 mt-4">
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                 <Link
-                  href="https://instagram.com"
+                  href="https://www.instagram.com/ibrahim._isaac/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`${theme === "dark" ? "text-white" : "text-gray-900"}`}
                 >
                   <Instagram className="h-5 xs:h-6 w-5 xs:w-6" />
                   <span className="sr-only">Instagram</span>
-                </Link>
-              </motion.div>
-
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                <Link
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${theme === "dark" ? "text-white" : "text-gray-900"}`}
-                >
-                  <Twitter className="h-5 xs:h-6 w-5 xs:w-6" />
-                  <span className="sr-only">Twitter</span>
                 </Link>
               </motion.div>
 
@@ -143,38 +129,13 @@ export default function Footer() {
 
               <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                 <Link
-                  href="https://linkedin.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="mailto:infotojesus@gmail.com"
                   className={`${theme === "dark" ? "text-white" : "text-gray-900"}`}
                 >
-                  <Linkedin className="h-5 xs:h-6 w-5 xs:w-6" />
-                  <span className="sr-only">LinkedIn</span>
+                  <Mail className="h-5 xs:h-6 w-5 xs:w-6" />
+                  <span className="sr-only">Email</span>
                 </Link>
               </motion.div>
-            </div>
-
-            <div className="flex gap-3 mt-4">
-              <Link
-                href="/portfolio"
-                className={`border ${
-                  theme === "dark"
-                    ? "border-white text-white hover:bg-gray-800"
-                    : "border-gray-900 text-gray-900 hover:bg-gray-200"
-                } px-4 xs:px-6 py-1 hover:bg-transparent text-sm transition-colors`}
-              >
-                Portfolio
-              </Link>
-              <Link
-                href="mailto:contact@example.com"
-                className={`border ${
-                  theme === "dark"
-                    ? "border-white text-white hover:bg-gray-800"
-                    : "border-gray-900 text-gray-900 hover:bg-gray-200"
-                } px-4 xs:px-6 py-1 hover:bg-transparent text-sm transition-colors`}
-              >
-                Email me
-              </Link>
             </div>
           </div>
         </div>
@@ -186,7 +147,7 @@ export default function Footer() {
         }`}
       >
         <p className="text-sm">
-          عدد الزوار: {visitorCount} | © 2025 ابراهيم اسحق . جميع الحقوق محفوظة.
+          {visitorCount} | © 2025 ابراهيم اسحق . جميع الحقوق محفوظة.
         </p>
       </div>
     </footer>
