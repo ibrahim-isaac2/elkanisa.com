@@ -1390,9 +1390,7 @@ export default function HeroSection() {
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:bg-white/20"
                   }`}
-                  disabled={
-                    selectedItem && currentSlide === formatContent(selectedItem).length - 1
-                  }
+                  disabled={!!selectedItem && currentSlide === formatContent(selectedItem).length - 1}
                   aria-label="الشريحة التالية"
                 >
                   <ChevronRight className="h-6 w-6" />
