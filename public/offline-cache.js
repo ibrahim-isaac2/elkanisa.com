@@ -5,6 +5,14 @@ async function cacheJsonData(key, url) {
   try {
     const cachedData = await get(key);
     if (cachedData) {
+      // تحقق من التحديثات حتى لو موجود في الكاش
+      const response = await fetch(url, { cache: 'no-store' });
+      if (response.ok) {
+        const data = await response.json();
+        await set(key, data);
+        console.log(`${key} updated in cache`);
+        return data;
+      }
       return cachedData;
     }
 
@@ -12,6 +20,7 @@ async function cacheJsonData(key, url) {
     if (!response.ok) throw new Error('Failed to fetch JSON');
     const data = await response.json();
     await set(key, data);
+    console.log(`${key} cached`);
     return data;
   } catch (error) {
     console.error(`Error caching ${key}:`, error);
@@ -23,9 +32,9 @@ async function cacheJsonData(key, url) {
 async function cacheMedia(url) {
   try {
     const cache = await caches.open('media-files');
-    const response = await fetch(url);
+    const response = await fetch(url, { cache: 'no-store' });
     if (!response.ok) throw new Error(`Failed to fetch ${url}`);
-    await cache.put(url, response);
+    await cache.put(url, response.clone());
     console.log(`${url} cached`);
   } catch (error) {
     console.error(`Error caching media ${url}:`, error);
@@ -137,9 +146,9 @@ async function cacheAllMedia(audioBaseUrl, videoBaseUrl) {
       await Promise.all(
         chunk.map(async (url) => {
           try {
-            const response = await fetch(url);
+            const response = await fetch(url, { cache: 'no-store' });
             if (!response.ok) throw new Error(`Failed to fetch ${url}`);
-            await cache.put(url, response);
+            await cache.put(url, response.clone());
             console.log(`${url} cached`);
           } catch (error) {
             console.error(`Failed to cache ${url}:`, error);
@@ -195,7 +204,7 @@ async function updateMediaCache(audioBaseUrl, videoBaseUrl) {
           // تحقق من التحديثات
           const response = await fetch(url, { cache: 'no-store' });
           if (response.ok) {
-            await cache.put(url, response); // حدث الملف في الكاش
+            await cache.put(url, response.clone());
             console.log(`${url} updated`);
           }
         }
