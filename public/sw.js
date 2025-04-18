@@ -1,4 +1,4 @@
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js');
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.5/workbox-sw.js');
 import { cacheAllMedia } from './offline-cache.ts';
 
 // حدث التثبيت لتخزين ملفات الصوت والفيديو
