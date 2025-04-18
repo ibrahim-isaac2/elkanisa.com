@@ -816,27 +816,27 @@ export default function محرر_العروض_التقديمية() {
         return 28
     }
   }
-
-  // Modify the حفظ_كملف_باوربوينت function to properly handle text colors
   const حفظ_كملف_باوربوينت = () => {
     try {
-      const pptx = new pptxgen()
-      pptx.layout = أبعاد_الشريحة.width > أبعاد_الشريحة.height ? "LAYOUT_WIDE" : "LAYOUT_STANDARD"
+      const pptx = new pptxgen();
+      // تحديد تخطيط العرض بناءً على أبعاد الشريحة
+      pptx.layout =
+        أبعاد_الشريحة.width > أبعاد_الشريحة.height
+          ? "LAYOUT_WIDE"
+          : "LAYOUT_STANDARD";
+  
+      // تحديد الـ slide master بدون width و height
       pptx.defineSlideMaster({
         title: "MASTER_SLIDE",
-        width: أبعاد_الشريحة.width,
-        height: أبعاد_الشريحة.height,
-      })
-
+        background: { color: "FFFFFF" }, // خلفية افتراضية (اختياري)
+      });
+  
       شرائح.forEach((شريحة) => {
-        const pptSlide = pptx.addSlide({ masterName: "MASTER_SLIDE" })
-
+        const pptSlide = pptx.addSlide({ masterName: "MASTER_SLIDE" });
+  
         // تحويل اللون إلى صيغة HEX المناسبة لـ PowerPoint
         const تحويل_اللون_إلى_هيكس = (color: string) => {
-          // إذا كان اللون بالفعل بصيغة HEX
-          if (color.startsWith("#")) return color.substring(1)
-
-          // قاموس الألوان الأساسية
+          if (color.startsWith("#")) return color.substring(1);
           const الألوان_الأساسية: Record<string, string> = {
             white: "FFFFFF",
             black: "000000",
@@ -850,12 +850,11 @@ export default function محرر_العروض_التقديمية() {
             gold: "FFD700",
             darkblue: "00008B",
             darkgreen: "006400",
-          }
-
-          return الألوان_الأساسية[color] || "FFFFFF" // إرجاع اللون الأبيض كقيمة افتراضية
-        }
-
-        // إضافة المحتوى الرئيسي مع تحديد اللون بشكل صريح
+          };
+          return الألوان_الأساسية[color] || "FFFFFF";
+        };
+  
+        // إضافة المحتوى الرئيسي
         pptSlide.addText(شريحة.content, {
           x: 0.5,
           y: 0.5,
@@ -870,16 +869,17 @@ export default function محرر_العروض_التقديمية() {
           italic: شريحة.isItalic,
           underline: شريحة.isUnderline,
           lineSpacing: شريحة.lineSpacing * 24,
-          shadow: شريحة.textShadow ? { type: "outer", color: "000000", blur: 3, offset: 3, angle: 45 } : undefined,
-        })
-
+          shadow: شريحة.textShadow
+            ? { type: "outer", color: "000000", blur: 3, offset: 3, angle: 45 }
+            : undefined,
+        });
+  
         // إضافة الخلفية
         if (شريحة.backgroundColor === "custom" && شريحة.backgroundImage) {
           if (شريحة.backgroundImage.startsWith("data:image")) {
-            pptSlide.background = { data: شريحة.backgroundImage, opacity: شريحة.backgroundOpacity }
+            pptSlide.background = { data: شريحة.backgroundImage, opacity: شريحة.backgroundOpacity };
           } else {
-            // بالنسبة لخلفيات التدرج
-            pptSlide.background = { color: "000000" }
+            pptSlide.background = { color: "000000" };
             pptSlide.addShape(pptx.ShapeType.rectangle, {
               x: 0,
               y: 0,
@@ -887,12 +887,12 @@ export default function محرر_العروض_التقديمية() {
               h: "100%",
               fill: { color: "000000" },
               line: { color: "transparent" },
-            })
+            });
           }
         } else {
-          pptSlide.background = { color: تحويل_اللون_إلى_هيكس(شريحة.backgroundColor) }
+          pptSlide.background = { color: تحويل_اللون_إلى_هيكس(شريحة.backgroundColor) };
         }
-
+  
         // إضافة العلامة المائية
         if (شريحة.watermark) {
           pptSlide.addText(شريحة.watermark, {
@@ -905,9 +905,9 @@ export default function محرر_العروض_التقديمية() {
             align: "right",
             valign: "top",
             opacity: 0.5,
-          })
+          });
         }
-
+  
         // إضافة الصور
         شريحة.images.forEach((img) => {
           if (img.src.startsWith("data:image")) {
@@ -918,11 +918,11 @@ export default function محرر_العروض_التقديمية() {
               w: img.width / 100,
               h: img.height / 100,
               rotate: img.rotation,
-            })
+            });
           }
-        })
-
-        // إضافة عناصر النص مع تحديد اللون بشكل صريح
+        });
+  
+        // إضافة عناصر النص
         شريحة.textElements.forEach((txt) => {
           pptSlide.addText(txt.content, {
             x: txt.x / 100,
@@ -935,43 +935,41 @@ export default function محرر_العروض_التقديمية() {
             bold: txt.isBold,
             italic: txt.isItalic,
             underline: txt.isUnderline,
-          })
-        })
-
+          });
+        });
+  
         // إضافة انتقال الشريحة
         if (انتقال_الشريحة !== "none") {
-          pptSlide.slideTransition = { type: انتقال_الشريحة }
+          pptSlide.slideTransition = { type: انتقال_الشريحة };
         }
-      })
-
-      // تعيين خصائص المستند للحفاظ على التنسيق
-      pptx.author = "محرر العروض التقديمية"
-      pptx.subject = عنوان_العرض
-      pptx.company = "محرر العروض التقديمية"
-      pptx.revision = "1"
-
-      // إضافة خصائص إضافية للحفاظ على التنسيق
-      pptx.title = عنوان_العرض
+      });
+  
+      // إعدادات المستند
+      pptx.author = "محرر العروض التقديمية";
+      pptx.subject = عنوان_العرض;
+      pptx.company = "محرر العروض التقديمية";
+      pptx.revision = "1";
+      pptx.title = عنوان_العرض;
       pptx.theme = {
         headFontFace: عائلات_الخطوط[0].value,
         bodyFontFace: عائلات_الخطوط[0].value,
-      }
-
-      pptx.writeFile(`${عنوان_العرض || "presentation"}.pptx`)
-
+      };
+  
+      pptx.writeFile(`${عنوان_العرض || "presentation"}.pptx`);
+  
       toast({
         title: "تم الحفظ بنجاح",
         description: `تم حفظ العرض التقديمي كملف باوربوينت "${عنوان_العرض || "presentation"}.pptx"`,
-      })
+      });
     } catch (error) {
-      console.error("خطأ في الحفظ كملف باوربوينت:", error)
+      console.error("خطأ في الحفظ كملف باوربوينت:", error);
       toast({
         title: "خطأ في الحفظ",
         description: "حدث خطأ أثناء حفظ العرض التقديمي كملف باوربوينت",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const تبديل_ملء_الشاشة = () => {
     if (!document.fullscreenElement) {
