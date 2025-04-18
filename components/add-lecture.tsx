@@ -874,24 +874,37 @@ export default function محرر_العروض_التقديمية() {
             : undefined,
         });
   
-        // إضافة الخلفية
-        if (شريحة.backgroundColor === "custom" && شريحة.backgroundImage) {
-          if (شريحة.backgroundImage.startsWith("data:image")) {
-            pptSlide.background = { data: شريحة.backgroundImage, opacity: شريحة.backgroundOpacity };
-          } else {
-            pptSlide.background = { color: "000000" };
-            pptSlide.addShape(pptx.ShapeType.rectangle, {
-              x: 0,
-              y: 0,
-              w: "100%",
-              h: "100%",
-              fill: { color: "000000" },
-              line: { color: "transparent" },
-            });
-          }
-        } else {
-          pptSlide.background = { color: تحويل_اللون_إلى_هيكس(شريحة.backgroundColor) };
-        }
+// إضافة الخلفية
+if (شريحة.backgroundColor === "custom" && شريحة.backgroundImage) {
+  if (شريحة.backgroundImage.startsWith("data:image")) {
+    pptSlide.background = { data: شريحة.backgroundImage }; // إزالة opacity
+    // إضافة طبقة شفافة إذا كانت الشفافية مطلوبة
+    if (شريحة.backgroundOpacity < 1) {
+      pptSlide.addShape(pptx.ShapeType.rectangle, {
+        x: 0,
+        y: 0,
+        w: "100%",
+        h: "100%",
+        fill: { color: "FFFFFF", transparency: (1 - شريحة.backgroundOpacity) * 100 }, // تحويل opacity إلى transparency
+      });
+    }
+  } else {
+    pptSlide.background = { color: "000000" };
+    pptSlide.addShape(pptx.ShapeType.rectangle, {
+      x: 0,
+      y: 0,
+      w: "100%",
+      h: "100%",
+      fill: { color: "000000" },
+      line: { color: "transparent" },
+    });
+  }
+} else {
+  pptSlide.background = { color: تحويل_اللون_إلى_هيكس(شريحة.backgroundColor) };
+}
+
+
+
   
         // إضافة العلامة المائية
         if (شريحة.watermark) {
