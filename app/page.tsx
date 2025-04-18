@@ -24,18 +24,43 @@ export default function Home() {
         .register("/sw.js", { scope: "/" })
         .then((registration) => {
           console.log("Service Worker registered:", registration.scope);
+
+          // التحقق من التحديثات
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // إشعار المستخدم
+                  alert('تم العثور على تحديث جديد! سيتم تحديث التطبيق.');
+                  newWorker.postMessage({ action: 'skipWaiting' });
+                }
+              });
+            }
+          });
         })
         .catch((error) => {
           console.error("Service Worker registration failed:", error);
         });
+
+      // إرسال رسالة لتفعيل التحديث
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload(); // إعادة تحميل الصفحة بعد التحديث
+      });
     }
 
     // مراقبة حالة الاتصال
-    const handleOnline = () => setIsOnline(true);
+    const handleOnline = () => {
+      setIsOnline(true);
+      // تحديث الكاش عند الاتصال
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ action: 'updateCache' });
+      }
+    };
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener("online", handleOnline);
-    window.removeEventListener("offline", handleOffline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
       window.removeEventListener("online", handleOnline);
