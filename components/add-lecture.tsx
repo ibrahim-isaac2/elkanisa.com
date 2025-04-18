@@ -873,24 +873,23 @@ export default function محرر_العروض_التقديمية() {
             ? { type: "outer", color: "000000", blur: 3, offset: 3, angle: 45 }
             : undefined,
         });
-  
-// إضافة الخلفية
+  // إضافة الخلفية
 if (شريحة.backgroundColor === "custom" && شريحة.backgroundImage) {
   if (شريحة.backgroundImage.startsWith("data:image")) {
-    pptSlide.background = { data: شريحة.backgroundImage }; // إزالة opacity
+    pptSlide.background = { data: شريحة.backgroundImage };
     // إضافة طبقة شفافة إذا كانت الشفافية مطلوبة
     if (شريحة.backgroundOpacity < 1) {
-      pptSlide.addShape(pptx.ShapeType.rectangle, {
+      pptSlide.addShape(pptx.ShapeType.rect, { // التعديل هنا: rectangle → rect
         x: 0,
         y: 0,
         w: "100%",
         h: "100%",
-        fill: { color: "FFFFFF", transparency: (1 - شريحة.backgroundOpacity) * 100 }, // تحويل opacity إلى transparency
+        fill: { color: "FFFFFF", transparency: (1 - شريحة.backgroundOpacity) * 100 },
       });
     }
   } else {
     pptSlide.background = { color: "000000" };
-    pptSlide.addShape(pptx.ShapeType.rectangle, {
+    pptSlide.addShape(pptx.ShapeType.rect, { // التعديل هنا: rectangle → rect
       x: 0,
       y: 0,
       w: "100%",
@@ -902,8 +901,6 @@ if (شريحة.backgroundColor === "custom" && شريحة.backgroundImage) {
 } else {
   pptSlide.background = { color: تحويل_اللون_إلى_هيكس(شريحة.backgroundColor) };
 }
-
-
 
   
         // إضافة العلامة المائية
