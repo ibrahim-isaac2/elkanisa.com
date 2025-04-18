@@ -1416,13 +1416,11 @@ export default function HeroSection() {
                 <button
                   onClick={handleNextSlide}
                   className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
-                    selectedItem && currentSlide === formatContent(selectedItem).length - 1
+                    selectedItem ? currentSlide === formatContent(selectedItem).length - 1 : true
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:bg-white/20"
                   }`}
-                  disabled={
-                    selectedItem && currentSlide === formatContent(selectedItem).length - 1
-                  }
+                  disabled={selectedItem ? currentSlide === formatContent(selectedItem).length - 1 : true}
                   aria-label="الشريحة التالية"
                 >
                   <ChevronRight className="h-6 w-6" />
