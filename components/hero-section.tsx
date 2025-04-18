@@ -154,7 +154,7 @@ export default function HeroSection() {
   const [globalFontSize, setGlobalFontSize] = useState(() => {
     if (typeof window !== "undefined") {
       const savedFontSize = localStorage.getItem("globalFontSize");
-      return savedFontSize ? parseInt(savedFontSize, 10) : 72; // حجم افتراضي أكبر
+      return savedFontSize ? parseInt(savedFontSize, 10) : 72;
     }
     return 72;
   });
@@ -183,6 +183,25 @@ export default function HeroSection() {
   const autoAdvanceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+
+  // دالة لحساب حجم الخط ديناميكيًا بناءً على طول النص
+  const calculateDynamicFontSize = (text: string) => {
+    const textLength = text.length;
+    const baseFontSize = globalFontSize; // حجم الخط الأساسي المحدد من السلايدر
+    const minFontSize = 24; // الحد الأدنى لحجم الخط
+    const maxFontSize = 120; // الحد الأقصى لحجم الخط
+
+    // إذا كان النص قصيرًا جدًا (أقل من 50 حرفًا)، نكبر الخط
+    if (textLength < 50) {
+      return Math.min(baseFontSize * 1.2, maxFontSize); // زيادة بنسبة 20%
+    }
+    // إذا كان النص طويلًا جدًا (أكثر من 200 حرف)، نصغر الخط
+    else if (textLength > 200) {
+      return Math.max(baseFontSize * 0.8, minFontSize); // تقليل بنسبة 20%
+    }
+    // إذا كان النص متوسطًا (بين 50 و200 حرف)، نستخدم حجم الخط الأساسي
+    return baseFontSize;
+  };
 
   const normalizeText = (text: string): string => {
     return text
@@ -244,7 +263,6 @@ export default function HeroSection() {
     [fuse]
   );
 
-  // Debounce the search to prevent excessive updates
   useEffect(() => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -904,7 +922,15 @@ export default function HeroSection() {
                     <div className="text-center px-4 sm:px-8 w-full h-full flex items-center justify-center">
                       <p
                         className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
-                        style={{ fontSize: `${globalFontSize}px`, fontFamily: '"Noto Sans Arabic", sans-serif', fontWeight: 900 }}
+                        style={{
+                          fontSize: `${
+                            formatContent(selectedItem)[currentSlide]
+                              ? calculateDynamicFontSize(formatContent(selectedItem)[currentSlide])
+                              : globalFontSize
+                          }px`,
+                          fontFamily: '"Noto Sans Arabic", sans-serif',
+                          fontWeight: 900,
+                        }}
                       >
                         {formatContent(selectedItem)[currentSlide]}
                       </p>
@@ -925,7 +951,11 @@ export default function HeroSection() {
                         <p
                           key={index}
                           className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text mb-8 max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
-                          style={{ fontSize: `${globalFontSize}px`, fontFamily: '"Noto Sans Arabic", sans-serif', fontWeight: 900 }}
+                          style={{
+                            fontSize: `${calculateDynamicFontSize(content)}px`,
+                            fontFamily: '"Noto Sans Arabic", sans-serif',
+                            fontWeight: 900,
+                          }}
                         >
                           {content}
                         </p>
@@ -1390,7 +1420,9 @@ export default function HeroSection() {
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:bg-white/20"
                   }`}
-                  disabled={!!selectedItem && currentSlide === formatContent(selectedItem).length - 1}
+                  disabled={
+                    selectedItem && currentSlide === formatContent(selectedItem).length - 1
+                  }
                   aria-label="الشريحة التالية"
                 >
                   <ChevronRight className="h-6 w-6" />
