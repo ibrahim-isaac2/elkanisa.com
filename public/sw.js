@@ -1,4 +1,4 @@
-// Service Worker Version: 1.0.1
+// Service Worker Version: 1.0.2
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js');
 importScripts('/offline-cache.js');
 
