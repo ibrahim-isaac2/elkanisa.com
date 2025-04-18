@@ -1,5 +1,6 @@
+// Service Worker Version: 1.0.1
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js');
-import { cacheAllMedia } from './offline-cache.ts';
+importScripts('/offline-cache.js');
 
 // حدث التثبيت لتخزين ملفات الصوت والفيديو
 self.addEventListener('install', (event) => {
@@ -9,6 +10,28 @@ self.addEventListener('install', (event) => {
       'https://pub-daf4aa025298493f8f6634fe32b8754b.r2.dev'  // رابط الفيديوهات
     )
   );
+});
+
+// حدث التفعيل لتحديث الكاش
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    updateMediaCache(
+      'https://pub-d84ec872e0d940018b402da80d54a407.r2.dev',
+      'https://pub-daf4aa025298493f8f6634fe32b8754b.r2.dev'
+    )
+  );
+});
+
+// معالجة الرسائل من العميل
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  } else if (event.data && event.data.action === 'updateCache') {
+    updateMediaCache(
+      'https://pub-d84ec872e0d940018b402da80d54a407.r2.dev',
+      'https://pub-daf4aa025298493f8f6634fe32b8754b.r2.dev'
+    );
+  }
 });
 
 // تخزين الملفات الرئيسية أثناء التثبيت
@@ -27,7 +50,7 @@ workbox.precaching.precacheAndRoute([
 // كاش لملفات JSON من raw.githubusercontent.com
 workbox.routing.registerRoute(
   ({ url }) => url.href.includes('raw.githubusercontent.com'),
-  new workbox.strategies.CacheFirst({
+  new workbox.strategies.StaleWhileRevalidate({
     cacheName: 'json-files',
     plugins: [
       new workbox.cacheableResponse.CacheableResponsePlugin({
@@ -40,11 +63,14 @@ workbox.routing.registerRoute(
 // كاش لملفات الصوتيات من R2
 workbox.routing.registerRoute(
   ({ url }) => url.href.includes('pub-d84ec872e0d940018b402da80d54a407.r2.dev'),
-  new workbox.strategies.CacheFirst({
+  new workbox.strategies.StaleWhileRevalidate({
     cacheName: 'audio-files',
     plugins: [
       new workbox.cacheableResponse.CacheableResponsePlugin({
         statuses: [0, 200],
+      }),
+      new workbox.expiration.ExpirationPlugin({
+        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 يوم
       }),
     ],
   })
@@ -53,11 +79,14 @@ workbox.routing.registerRoute(
 // كاش لملفات الفيديوهات من R2
 workbox.routing.registerRoute(
   ({ url }) => url.href.includes('pub-daf4aa025298493f8f6634fe32b8754b.r2.dev'),
-  new workbox.strategies.CacheFirst({
+  new workbox.strategies.StaleWhileRevalidate({
     cacheName: 'video-files',
     plugins: [
       new workbox.cacheableResponse.CacheableResponsePlugin({
         statuses: [0, 200],
+      }),
+      new workbox.expiration.ExpirationPlugin({
+        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 يوم
       }),
     ],
   })
