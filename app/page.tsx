@@ -32,12 +32,19 @@ export default function Home() {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                   // إشعار المستخدم
-                  alert('تم العثور على تحديث جديد! سيتم تحديث التطبيق.');
-                  newWorker.postMessage({ action: 'skipWaiting' });
+                  const shouldUpdate = confirm('تم العثور على تحديث جديد! هل تريد تحديث التطبيق الآن؟');
+                  if (shouldUpdate) {
+                    newWorker.postMessage({ action: 'skipWaiting' });
+                  }
                 }
               });
             }
           });
+
+          // تحديث الكاش عند فتح الصفحة
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ action: 'updateCache' });
+          }
         })
         .catch((error) => {
           console.error("Service Worker registration failed:", error);
@@ -60,7 +67,7 @@ export default function Home() {
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+    window.removeEventListener("offline", handleOffline);
 
     return () => {
       window.removeEventListener("online", handleOnline);
