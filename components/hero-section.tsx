@@ -789,7 +789,7 @@ export default function HeroSection() {
                   {searchResults.map((item, index) => (
                     <div
                       key={index}
-                      className="w-full text-right px-4 sm:px-6 py-4 hover:bg-muted text-foreground transition-colors duration-200 border-b border-border last:border-b-0 flex justify-between items-center"
+                      className="w-full text-right px-4 sm:px-6 py-4 hover:bg-muted text-foreground transition-colors duration-200 border-b border-border last:border“B-0 flex justify-between items-center"
                     >
                       <button
                         className="flex-1 text-right font-semibold"
@@ -921,7 +921,7 @@ export default function HeroSection() {
                   ) : (
                     <div className="text-center px-4 sm:px-8 w-full h-full flex items-center justify-center">
                       <p
-                        className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
+                        className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
                         style={{
                           fontSize: `${
                             formatContent(selectedItem)[currentSlide]
@@ -930,6 +930,8 @@ export default function HeroSection() {
                           }px`,
                           fontFamily: '"Noto Sans Arabic", sans-serif',
                           fontWeight: 900,
+                          direction: 'rtl',
+                          textAlign: 'center', // تأكيد المحازاة للمنتصف
                         }}
                       >
                         {formatContent(selectedItem)[currentSlide]}
@@ -950,11 +952,13 @@ export default function HeroSection() {
                       ) : (
                         <p
                           key={index}
-                          className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text mb-8 max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
+                          className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line mb-8 max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
                           style={{
                             fontSize: `${calculateDynamicFontSize(content)}px`,
                             fontFamily: '"Noto Sans Arabic", sans-serif',
                             fontWeight: 900,
+                            direction: 'rtl',
+                            textAlign: 'center', // تأكيد المحازاة للمنتصف
                           }}
                         >
                           {content}
@@ -966,8 +970,14 @@ export default function HeroSection() {
               ) : (
                 <div className="text-center px-4 sm:px-8 w-full h-full flex items-center justify-center">
                   <p
-                    className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
-                    style={{ fontSize: `${globalFontSize}px`, fontFamily: '"Noto Sans Arabic", sans-serif', fontWeight: 900 }}
+                    className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
+                    style={{
+                      fontSize: `${globalFontSize}px`,
+                      fontFamily: '"Noto Sans Arabic", sans-serif',
+                      fontWeight: 900,
+                      direction: 'rtl',
+                      textAlign: 'center', // تأكيد المحازاة للمنتصف
+                    }}
                   >
                     لا يوجد محتوى محدد
                   </p>
