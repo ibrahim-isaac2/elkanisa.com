@@ -5,7 +5,6 @@ import HeroSection from "@/components/hero-section";
 import AddHymn from "@/components/add-hymn";
 import AudioBible from "@/components/audio-bible";
 import InstallButton from "@/components/install-button";
-import AddLecture from "@/components/add-lecture"; // علّقنا الـ import بتاع AddLecture
 import AttendanceRecord from "@/components/attendance-record";
 import WordAndMelodyHymns from "@/components/word-and-melody-hymns";
 import Footer from "@/components/footer";
@@ -60,7 +59,6 @@ export default function Home() {
           <TextBible />
           <WordAndMelodyHymns />
           <AudioBible />
-           <AddLecture /> 
           <AddHymn />
           <AttendanceRecord />
           <PowerPointSection />
