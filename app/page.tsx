@@ -24,46 +24,14 @@ export default function Home() {
         .register("/sw.js", { scope: "/" })
         .then((registration) => {
           console.log("Service Worker registered:", registration.scope);
-
-          // التحقق من التحديثات
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // إشعار المستخدم
-                  const shouldUpdate = confirm('تم العثور على تحديث جديد! هل تريد تحديث التطبيق الآن؟');
-                  if (shouldUpdate) {
-                    newWorker.postMessage({ action: 'skipWaiting' });
-                  }
-                }
-              });
-            }
-          });
-
-          // تحديث الكاش عند فتح الصفحة
-          if (navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({ action: 'updateCache' });
-          }
         })
         .catch((error) => {
           console.error("Service Worker registration failed:", error);
         });
-
-      // إرسال رسالة لتفعيل التحديث
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        window.location.reload(); // إعادة تحميل الصفحة بعد التحديث
-      });
     }
 
     // مراقبة حالة الاتصال
-    const handleOnline = () => {
-      setIsOnline(true);
-      // تحديث الكاش عند الاتصال
-      if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({ action: 'updateCache' });
-      }
-    };
+    const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener("online", handleOnline);
