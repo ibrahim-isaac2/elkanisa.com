@@ -53,7 +53,6 @@ export default function Home() {
       <main className="container mx-auto p-6 space-y-8 flex-1">
         <Header />
         <h1 className="text-3xl font-bold text-center">
-          الكنيسة - ترانيم كنسية والكتاب المقدس
         </h1>
         <HeroSection />
         <div className="space-y-8 max-w-4xl mx-auto">
