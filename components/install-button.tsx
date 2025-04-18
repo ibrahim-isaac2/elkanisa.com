@@ -41,7 +41,7 @@ export default function InstallButton() {
       window.addEventListener("beforeinstallprompt", handler);
     } else {
       console.log("InstallButton: beforeinstallprompt event not supported in this browser.");
-      setIsSupported(true); // Force button to show even if not supported
+      setIsSupported(true); // Show button but handle unsupported case in click
     }
 
     // Listen for appinstalled event to confirm installation
@@ -56,17 +56,39 @@ export default function InstallButton() {
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
       console.log("InstallButton: No deferred prompt available.");
+      // Detect browser and device for tailored instructions
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+      let message = "التثبيت غير متاح حاليًا. يرجى التحقق من اتصالك بالإنترنت وحاول مرة أخرى.";
+      
+      if (!("BeforeInstallPromptEvent" in window)) {
+        if (isIOS && isSafari) {
+          message = "لتثبيت التطبيق على iOS، اضغط على أيقونة المشاركة في Safari ثم اختر 'إضافة إلى الشاشة الرئيسية'.";
+        } else {
+          message = "هذا المتصفح لا يدعم التثبيت التلقائي. جرب استخدام متصفح Chrome أو Edge.";
+        }
+      }
+
+      alert(message);
       return;
     }
 
-    (deferredPrompt as any).prompt();
-    const { outcome } = await (deferredPrompt as any).userChoice;
-    if (outcome === "accepted") {
-      console.log("InstallButton: User accepted the install prompt.");
-    } else {
-      console.log("InstallButton: User dismissed the install prompt.");
+    try {
+      (deferredPrompt as any).prompt();
+      const { outcome } = await (deferredPrompt as any).userChoice;
+      console.log(`InstallButton: User choice outcome: ${outcome}`);
+      if (outcome === "accepted") {
+        console.log("InstallButton: User accepted the install prompt.");
+      } else {
+        console.log("InstallButton: User dismissed the install prompt.");
+      }
+    } catch (error) {
+      console.error("InstallButton: Error during prompt:", error);
+      alert("حدث خطأ أثناء محاولة التثبيت. حاول مرة أخرى لاحقًا.");
+    } finally {
+      setDeferredPrompt(null);
     }
-    setDeferredPrompt(null);
   };
 
   return (
