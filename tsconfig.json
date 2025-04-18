@@ -30,10 +30,10 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
-, "public/offline-cache.js"  ],
+    "/*.ts",
+    "/*.tsx",
+    ".next/types//*.ts"
+  ],
   "exclude": [
     "node_modules"
   ]
