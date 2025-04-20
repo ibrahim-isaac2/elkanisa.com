@@ -3,7 +3,6 @@
 import type React from "react";
 import { useState, useCallback, useRef, useEffect } from "react";
 import {
-  Search,
   ChevronLeft,
   ChevronRight,
   X,
@@ -205,7 +204,7 @@ export default function TextBible() {
   const [imagePositionY, setImagePositionY] = useState(50);
   const [imageSize, setImageSize] = useState(50);
   const [searchMode, setSearchMode] = useState<"books" | "verses">("books");
-  const [verseSearchResults, setVerseSearchResults] = useState<SearchResult[]>([]); // حالة جديدة لنتائج البحث عن الآيات
+  const [verseSearchResults, setVerseSearchResults] = useState<SearchResult[]>([]);
 
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
@@ -347,45 +346,45 @@ export default function TextBible() {
   };
 
   // دالة لتنظيف النصوص من التشكيل
-const removeArabicDiacritics = (text: string): string => {
-  return text
-    .normalize("NFD") // نفكك النص للحروف والتشكيل
-    .replace(/[\u0610-\u061A\u064B-\u065F]/g, "") // نزيل التشكيل
-    .normalize("NFC"); // نرجع النص للشكل الطبيعي
-};
+  const removeArabicDiacritics = (text: string): string => {
+    return text
+      .normalize("NFD") // نفكك النص للحروف والتشكيل
+      .replace(/[\u0610-\u061A\u064B-\u065F]/g, "") // نزيل التشكيل
+      .normalize("NFC"); // نرجع النص للشكل الطبيعي
+  };
 
-// دالة البحث في الآيات مع إظهار النتائج في قائمة منسدلة
-const handleVerseSearch = () => {
-  if (!bibleData || !searchQuery.trim()) return;
+  // دالة البحث في الآيات مع إظهار النتائج في قائمة منسدلة
+  const handleVerseSearch = () => {
+    if (!bibleData || !searchQuery.trim()) return;
 
-  const results: SearchResult[] = [];
-  const query = removeArabicDiacritics(searchQuery.toLowerCase().trim());
-  console.log("الكلمة بعد التنظيف:", query); // تصحيح أخطاء
+    const results: SearchResult[] = [];
+    const query = removeArabicDiacritics(searchQuery.toLowerCase().trim());
+    console.log("الكلمة بعد التنظيف:", query); // تصحيح أخطاء
 
-  bibleData.forEach(section => {
-    section.books.forEach(book => {
-      book.chapters.forEach(chapter => {
-        chapter.verses.forEach(verse => {
-          const verseText = removeArabicDiacritics(verse.text.toLowerCase());
-          if (verseText.includes(query)) {
-            results.push({
-              book: book.name,
-              chapter: chapter.number,
-              verse: verse.number,
-              text: verse.text,
-            });
-          }
+    bibleData.forEach(section => {
+      section.books.forEach(book => {
+        book.chapters.forEach(chapter => {
+          chapter.verses.forEach(verse => {
+            const verseText = removeArabicDiacritics(verse.text.toLowerCase());
+            if (verseText.includes(query)) {
+              results.push({
+                book: book.name,
+                chapter: chapter.number,
+                verse: verse.number,
+                text: verse.text,
+              });
+            }
+          });
         });
       });
     });
-  });
 
-  console.log("عدد النتائج:", results.length); // تصحيح أخطاء
-  console.log("النتائج:", results); // تصحيح أخطاء
+    console.log("عدد النتائج:", results.length); // تصحيح أخطاء
+    console.log("النتائج:", results); // تصحيح أخطاء
 
-  setVerseSearchResults(results); // تخزين نتائج البحث
-  setShowSearchDropdown(true); // إظهار القائمة المنسدلة
-};
+    setVerseSearchResults(results); // تخزين نتائج البحث
+    setShowSearchDropdown(true); // إظهار القائمة المنسدلة
+  };
 
   const handleVoiceSearch = () => {
     if (!recognition) {
@@ -729,8 +728,8 @@ const handleVerseSearch = () => {
                 ref={searchRef}
               >
                 <div className="absolute inset-0 bg-black rounded-2xl blur-xl opacity-20 -z-10"></div>
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
+                <div className="flex items-center gap-2 w-full">
+                  <div className="relative flex-1 flex items-center">
                     <Input
                       ref={searchInputRef}
                       value={searchQuery}
@@ -747,42 +746,42 @@ const handleVerseSearch = () => {
                         }
                       }}
                       placeholder={searchMode === "books" ? "ابحث عن سفر..." : "ابحث في الآيات..."}
-                      className={`w-full pl-36 pr-4 py-4 sm:py-5 text-base sm:text-lg rounded-xl border-2 ${
+                      className={`w-full pr-4 py-3 sm:py-4 text-sm sm:text-base rounded-xl border-2 ${
                         theme === "dark" ? "border-white" : "border-black"
                       } bg-card text-foreground shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-ring focus:border-${
                         theme === "dark" ? "white" : "black"
-                      } backdrop-blur-sm hover:shadow-2xl`}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && searchMode === "verses") {
-                          handleVerseSearch();
-                        }
-                      }}
+                      } backdrop-blur-sm hover:shadow-2xl pl-28 sm:pl-32`} // ضبط الـ padding لتجنب التراكم
                     />
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-3">
+                    <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-2 sm:gap-3">
                       <button
                         onClick={() => setSearchMode("books")}
-                        className={`p-2 rounded-full ${searchMode === "books" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"} transition-colors duration-200`}
+                        className={`p-2 rounded-full ${
+                          searchMode === "books" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                        } transition-colors duration-200 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center`} // ضبط حجم الأيقونات
                         aria-label="بحث في الأسفار"
                       >
-                        <Book className="h-5 w-5" />
+                        <Book className="h-4 w-4 sm:h-5 sm:w-5" />
                       </button>
                       <button
                         onClick={() => setSearchMode("verses")}
-                        className={`p-2 rounded-full ${searchMode === "verses" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"} transition-colors duration-200`}
+                        className={`p-2 rounded-full ${
+                          searchMode === "verses" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                        } transition-colors duration-200 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center`}
                         aria-label="بحث في الآيات"
                       >
-                        <FileText className="h-5 w-5" />
+                        <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                       </button>
-                      <Search className="h-5 sm:h-6 w-5 sm:w-6 text-primary" />
                       <button
                         onClick={handleVoiceSearch}
-                        className={`p-2 rounded-full hover:bg-muted transition-colors duration-200 ${isListening ? "bg-destructive text-destructive-foreground" : ""}`}
+                        className={`p-2 rounded-full hover:bg-muted transition-colors duration-200 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center ${
+                          isListening ? "bg-destructive text-destructive-foreground" : ""
+                        }`}
                       >
-                        <Mic className="h-5 sm:h-6 w-5 sm:w-6" />
+                        <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
                       </button>
                       <button
                         onClick={toggleTheme}
-                        className="p-2 rounded-full hover:bg-muted transition-colors duration-200"
+                        className="p-2 rounded-full hover:bg-muted transition-colors duration-200 w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center"
                       >
                         {theme === "dark" ? "☀️" : "🌙"}
                       </button>
@@ -791,10 +790,23 @@ const handleVerseSearch = () => {
                   {searchMode === "verses" && (
                     <Button
                       onClick={handleVerseSearch}
-                      className="p-2 rounded-xl bg-primary text-primary-foreground transition-colors duration-200"
+                      className="p-2 rounded-xl bg-primary text-primary-foreground transition-colors duration-200 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center"
                       aria-label="بحث"
                     >
-                      <Search className="h-5 w-5" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 sm:h-6 sm:w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
                     </Button>
                   )}
                 </div>
@@ -893,7 +905,20 @@ const handleVerseSearch = () => {
                             className="w-full text-right px-4 sm:px-6 py-3 text-sm sm:text-base hover:bg-muted text-foreground transition-colors duration-200 border-b border-border last:border-b-0 flex items-center"
                             onClick={() => setSearchQuery(search)}
                           >
-                            <Search className="h-4 w-4 text-muted-foreground ml-3" />
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4 text-muted-foreground ml-3"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                              />
+                            </svg>
                             {search}
                           </button>
                         ))}
