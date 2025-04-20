@@ -18,6 +18,8 @@ import {
   Download,
   AlignJustify,
   Columns,
+  Book,
+  FileText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -68,40 +70,28 @@ interface SpeechRecognition {
   onend: (() => void) | null;
 }
 
-interface Verse {
-  book_name: string;
-  book: number;
-  chapter: number;
-  verse: number;
+// تعريفات أنواع البيانات الجديدة لملف bible.json
+interface BibleVerse {
+  number: number;
   text: string;
 }
 
-interface BibleData {
-  metadata: {
-    name: string;
-    shortname: string;
-    module: string;
-    year: string;
-    publisher: null;
-    owner: null;
-    description: string;
-    lang: string;
-    lang_short: string;
-    copyright: number;
-    copyright_statement: string;
-    url: null;
-    citation_limit: number;
-    restrict: number;
-    italics: number;
-    strongs: number;
-    red_letter: number;
-    paragraph: number;
-    official: number;
-    research: number;
-    module_version: string;
-  };
-  verses: Verse[];
+interface BibleChapter {
+  number: number;
+  verses: BibleVerse[];
 }
+
+interface BibleBook {
+  name: string;
+  chapters: BibleChapter[];
+}
+
+interface BibleSection {
+  name: string;
+  books: BibleBook[];
+}
+
+type BibleData = BibleSection[];
 
 type Theme = {
   background: string;
@@ -111,57 +101,24 @@ type Theme = {
   customUrl?: string;
 };
 
+type SearchResult = {
+  book: string;
+  chapter: number;
+  verse: number;
+  text: string;
+};
+
 const themes: Theme[] = [
-  {
-    name: "افتراضي",
-    background: "bg-black",
-    text: "text-white",
-  },
-  {
-    name: "أزرق داكن",
-    background: "bg-gradient-to-br from-blue-800 to-blue-950",
-    text: "text-white",
-  },
-  {
-    name: "أخضر داكن",
-    background: "bg-gradient-to-br from-emerald-800 to-green-950",
-    text: "text-white",
-  },
-  {
-    name: "أرجواني داكن",
-    background: "bg-gradient-to-br from-purple-800 to-purple-950",
-    text: "text-white",
-  },
-  {
-    name: "فاتح",
-    background: "bg-gradient-to-br from-gray-100 to-white",
-    text: "text-black",
-  },
-  {
-    name: "بني فاتح",
-    background: "bg-gradient-to-br from-amber-50 to-amber-100",
-    text: "text-amber-900",
-  },
-  {
-    name: "رمادي داكن",
-    background: "bg-gradient-to-br from-gray-700 to-gray-900",
-    text: "text-white",
-  },
-  {
-    name: "أحمر داكن",
-    background: "bg-gradient-to-br from-red-800 to-red-950",
-    text: "text-white",
-  },
-  {
-    name: "برتقالي داكن",
-    background: "bg-gradient-to-br from-orange-800 to-orange-950",
-    text: "text-white",
-  },
-  {
-    name: "أصفر فاتح",
-    background: "bg-gradient-to-br from-yellow-50 to-yellow-200",
-    text: "text-yellow-900",
-  },
+  { name: "افتراضي", background: "bg-black", text: "text-white" },
+  { name: "أزرق داكن", background: "bg-gradient-to-br from-blue-800 to-blue-950", text: "text-white" },
+  { name: "أخضر داكن", background: "bg-gradient-to-br from-emerald-800 to-green-950", text: "text-white" },
+  { name: "أرجواني داكن", background: "bg-gradient-to-br from-purple-800 to-purple-950", text: "text-white" },
+  { name: "فاتح", background: "bg-gradient-to-br from-gray-100 to-white", text: "text-black" },
+  { name: "بني فاتح", background: "bg-gradient-to-br from-amber-50 to-amber-100", text: "text-amber-900" },
+  { name: "رمادي داكن", background: "bg-gradient-to-br from-gray-700 to-gray-900", text: "text-white" },
+  { name: "أحمر داكن", background: "bg-gradient-to-br from-red-800 to-red-950", text: "text-white" },
+  { name: "برتقالي داكن", background: "bg-gradient-to-br from-orange-800 to-orange-950", text: "text-white" },
+  { name: "أصفر فاتح", background: "bg-gradient-to-br from-yellow-50 to-yellow-200", text: "text-yellow-900" },
 ];
 
 const textColors = [
@@ -196,8 +153,7 @@ export default function TextBible() {
 
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href =
-      "https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&display=swap";
+    link.href = "https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&display=swap";
     document.head.appendChild(link);
 
     return () => {
@@ -224,7 +180,7 @@ export default function TextBible() {
   const [globalFontSize, setGlobalFontSize] = useState(() => {
     if (typeof window !== "undefined") {
       const savedFontSize = localStorage.getItem("globalFontSize");
-      return savedFontSize ? parseInt(savedFontSize, 10) : 48; // حجم افتراضي أصغر
+      return savedFontSize ? parseInt(savedFontSize, 10) : 48;
     }
     return 48;
   });
@@ -248,6 +204,8 @@ export default function TextBible() {
   const [imagePositionX, setImagePositionX] = useState(50);
   const [imagePositionY, setImagePositionY] = useState(50);
   const [imageSize, setImageSize] = useState(50);
+  const [searchMode, setSearchMode] = useState<"books" | "verses">("books");
+  const [verseSearchResults, setVerseSearchResults] = useState<SearchResult[]>([]); // حالة جديدة لنتائج البحث عن الآيات
 
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
@@ -276,7 +234,6 @@ export default function TextBible() {
     }
   }, []);
 
-  // ضبط حجم الخط تلقائيًا بناءً على حجم الشاشة لما المكون يتحمل
   useEffect(() => {
     const setInitialFontSize = () => {
       const width = window.innerWidth;
@@ -304,7 +261,7 @@ export default function TextBible() {
   }, []);
 
   useEffect(() => {
-    fetch("/bible_arabic_full.json", {
+    fetch("/bible.json", {
       headers: {
         "Content-Type": "application/json; charset=utf-8",
       },
@@ -317,9 +274,8 @@ export default function TextBible() {
       })
       .then((data: BibleData) => {
         setBibleData(data);
-        const uniqueBooks = Array.from(
-          new Set(data.verses.map((verse) => verse.book_name)),
-        );
+        const allBooks = data.flatMap(section => section.books.map(book => book.name));
+        const uniqueBooks = Array.from(new Set(allBooks));
         setBooks(uniqueBooks);
         setFilteredBooks(uniqueBooks);
         setIsLoading(false);
@@ -333,14 +289,10 @@ export default function TextBible() {
 
   useEffect(() => {
     if (selectedBook && bibleData) {
-      const bookChapters = Array.from(
-        new Set(
-          bibleData.verses
-            .filter((verse) => verse.book_name === selectedBook)
-            .map((verse) => verse.chapter),
-        ),
-      );
-      setChapters(bookChapters.sort((a, b) => a - b));
+      const allBooks = bibleData.flatMap(section => section.books);
+      const selectedBookData = allBooks.find(book => book.name === selectedBook);
+      const chapters = selectedBookData ? selectedBookData.chapters.map(chapter => chapter.number) : [];
+      setChapters(chapters.sort((a, b) => a - b));
       setSelectedChapter("");
       setChapterText([]);
       setCurrentSlide(0);
@@ -350,17 +302,11 @@ export default function TextBible() {
 
   useEffect(() => {
     if (selectedBook && selectedChapter && bibleData) {
-      const verses = bibleData.verses
-        .filter(
-          (verse) =>
-            verse.book_name === selectedBook &&
-            verse.chapter === Number(selectedChapter),
-        )
-        .sort((a, b) => a.verse - b.verse)
-        .map(
-          (verse) =>
-            `${verse.book_name} ${verse.chapter}:${verse.verse}\n${verse.text}`,
-        );
+      const allBooks = bibleData.flatMap(section => section.books);
+      const selectedBookData = allBooks.find(book => book.name === selectedBook);
+      const chapterNumber = parseInt(selectedChapter);
+      const selectedChapterData = selectedBookData?.chapters.find(chapter => chapter.number === chapterNumber);
+      const verses = selectedChapterData ? selectedChapterData.verses.map(verse => `${selectedBook} ${chapterNumber}:${verse.number}\n${verse.text}`) : [];
       if (verses.length > 0) {
         setChapterText(verses);
         setCurrentSlide(0);
@@ -375,17 +321,21 @@ export default function TextBible() {
   }, [selectedBook, selectedChapter, bibleData]);
 
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredBooks(books);
-      setShowSearchDropdown(false);
+    if (searchMode === "books") {
+      if (searchQuery.trim() === "") {
+        setFilteredBooks(books);
+        setShowSearchDropdown(false);
+      } else {
+        const filtered = books.filter((book) =>
+          book.toLowerCase().includes(searchQuery.toLowerCase()),
+        );
+        setFilteredBooks(filtered);
+        setShowSearchDropdown(true);
+      }
     } else {
-      const filtered = books.filter((book) =>
-        book.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
-      setFilteredBooks(filtered);
-      setShowSearchDropdown(true);
+      setShowSearchDropdown(false);
     }
-  }, [searchQuery, books]);
+  }, [searchQuery, books, searchMode]);
 
   const handleSearchBookSelect = (book: string) => {
     setSelectedBook(book);
@@ -395,6 +345,47 @@ export default function TextBible() {
       addToRecentBibleSearches(searchQuery);
     }
   };
+
+  // دالة لتنظيف النصوص من التشكيل
+const removeArabicDiacritics = (text: string): string => {
+  return text
+    .normalize("NFD") // نفكك النص للحروف والتشكيل
+    .replace(/[\u0610-\u061A\u064B-\u065F]/g, "") // نزيل التشكيل
+    .normalize("NFC"); // نرجع النص للشكل الطبيعي
+};
+
+// دالة البحث في الآيات مع إظهار النتائج في قائمة منسدلة
+const handleVerseSearch = () => {
+  if (!bibleData || !searchQuery.trim()) return;
+
+  const results: SearchResult[] = [];
+  const query = removeArabicDiacritics(searchQuery.toLowerCase().trim());
+  console.log("الكلمة بعد التنظيف:", query); // تصحيح أخطاء
+
+  bibleData.forEach(section => {
+    section.books.forEach(book => {
+      book.chapters.forEach(chapter => {
+        chapter.verses.forEach(verse => {
+          const verseText = removeArabicDiacritics(verse.text.toLowerCase());
+          if (verseText.includes(query)) {
+            results.push({
+              book: book.name,
+              chapter: chapter.number,
+              verse: verse.number,
+              text: verse.text,
+            });
+          }
+        });
+      });
+    });
+  });
+
+  console.log("عدد النتائج:", results.length); // تصحيح أخطاء
+  console.log("النتائج:", results); // تصحيح أخطاء
+
+  setVerseSearchResults(results); // تخزين نتائج البحث
+  setShowSearchDropdown(true); // إظهار القائمة المنسدلة
+};
 
   const handleVoiceSearch = () => {
     if (!recognition) {
@@ -425,6 +416,9 @@ export default function TextBible() {
           const transcript = event.results[0][0].transcript;
           setSearchQuery(transcript);
           addToRecentBibleSearches(transcript);
+          if (searchMode === "verses") {
+            handleVerseSearch();
+          }
         } else {
           setVoiceError("لم يتم التعرف على أي كلام. حاول التحدث بصوت أعلى.");
         }
@@ -436,16 +430,13 @@ export default function TextBible() {
         let errorMessage = "حدث خطأ أثناء البحث الصوتي: ";
         switch (event.error) {
           case "no-speech":
-            errorMessage +=
-              "لم يتم التعرف على أي صوت. تأكد من أنك تتحدث بصوت واضح.";
+            errorMessage += "لم يتم التعرف على أي صوت. تأكد من أنك تتحدث بصوت واضح.";
             break;
           case "audio-capture":
-            errorMessage +=
-              "فشل في التقاط الصوت. تأكد من أن الميكروفون متصل ويعمل.";
+            errorMessage += "فشل في التقاط الصوت. تأكد من أن الميكروفون متصل ويعمل.";
             break;
           case "not-allowed":
-            errorMessage +=
-              "لم يتم منح إذن استخدام الميكروفون. تحقق من إعدادات المتصفح.";
+            errorMessage += "لم يتم منح إذن استخدام الميكروفون. تحقق من إعدادات المتصفح.";
             break;
           case "network":
             errorMessage += "فشل الاتصال بالخادم. تأكد من اتصالك بالإنترنت.";
@@ -696,22 +687,17 @@ export default function TextBible() {
     setShowSettings(false);
   };
 
-  // دالة لحساب حجم الخط ديناميكيًا بناءً على طول النص
   const calculateDynamicFontSize = (text: string) => {
     const textLength = text.length;
-    const baseFontSize = globalFontSize; // حجم الخط الأساسي المحدد من السلايدر
-    const minFontSize = 20; // الحد الأدنى لحجم الخط
-    const maxFontSize = 96; // الحد الأقصى لحجم الخط
+    const baseFontSize = globalFontSize;
+    const minFontSize = 20;
+    const maxFontSize = 96;
 
-    // إذا كان النص قصيرًا جدًا (أقل من 50 حرفًا)، نكبر الخط
     if (textLength < 50) {
-      return Math.min(baseFontSize * 1.2, maxFontSize); // زيادة بنسبة 20%
+      return Math.min(baseFontSize * 1.2, maxFontSize);
+    } else if (textLength > 200) {
+      return Math.max(baseFontSize * 0.8, minFontSize);
     }
-    // إذا كان النص طويلًا جدًا (أكثر من 200 حرف)، نصغر الخط
-    else if (textLength > 200) {
-      return Math.max(baseFontSize * 0.8, minFontSize); // تقليل بنسبة 20%
-    }
-    // إذا كان النص متوسطًا (بين 50 و200 حرف)، نستخدم حجم الخط الأساسي
     return baseFontSize;
   };
 
@@ -743,54 +729,77 @@ export default function TextBible() {
                 ref={searchRef}
               >
                 <div className="absolute inset-0 bg-black rounded-2xl blur-xl opacity-20 -z-10"></div>
-                <div className="relative">
-                  <Input
-                    ref={searchInputRef}
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setError(null);
-                      if (e.target.value.trim()) {
-                        setShowRecentSearches(false);
-                      }
-                    }}
-                    onFocus={() => {
-                      if (
-                        !searchQuery.trim() &&
-                        recentBibleSearches.length > 0
-                      ) {
-                        setShowRecentSearches(true);
-                      }
-                    }}
-                    placeholder="ابحث عن سفر..."
-                    className={`w-full pl-36 pr-4 py-4 sm:py-5 text-base sm:text-lg rounded-xl border-2 ${
-                      theme === "dark" ? "border-white" : "border-black"
-                    } bg-card text-foreground shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-ring focus:border-${
-                      theme === "dark" ? "white" : "black"
-                    } backdrop-blur-sm hover:shadow-2xl`}
-                  />
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-3">
-                    <Search className="h-5 sm:h-6 w-5 sm:w-6 text-primary" />
-                    <button
-                      onClick={handleVoiceSearch}
-                      className={`p-2 rounded-full hover:bg-muted transition-colors duration-200 ${
-                        isListening
-                          ? "bg-destructive text-destructive-foreground"
-                          : ""
-                      }`}
-                    >
-                      <Mic className="h-5 sm:h-6 w-5 sm:w-6" />
-                    </button>
-                    <button
-                      onClick={toggleTheme}
-                      className="p-2 rounded-full hover:bg-muted transition-colors duration-200"
-                    >
-                      {theme === "dark" ? "☀️" : "🌙"}
-                    </button>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      ref={searchInputRef}
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setError(null);
+                        if (e.target.value.trim()) {
+                          setShowRecentSearches(false);
+                        }
+                      }}
+                      onFocus={() => {
+                        if (!searchQuery.trim() && recentBibleSearches.length > 0) {
+                          setShowRecentSearches(true);
+                        }
+                      }}
+                      placeholder={searchMode === "books" ? "ابحث عن سفر..." : "ابحث في الآيات..."}
+                      className={`w-full pl-36 pr-4 py-4 sm:py-5 text-base sm:text-lg rounded-xl border-2 ${
+                        theme === "dark" ? "border-white" : "border-black"
+                      } bg-card text-foreground shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-ring focus:border-${
+                        theme === "dark" ? "white" : "black"
+                      } backdrop-blur-sm hover:shadow-2xl`}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && searchMode === "verses") {
+                          handleVerseSearch();
+                        }
+                      }}
+                    />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-3">
+                      <button
+                        onClick={() => setSearchMode("books")}
+                        className={`p-2 rounded-full ${searchMode === "books" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"} transition-colors duration-200`}
+                        aria-label="بحث في الأسفار"
+                      >
+                        <Book className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => setSearchMode("verses")}
+                        className={`p-2 rounded-full ${searchMode === "verses" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"} transition-colors duration-200`}
+                        aria-label="بحث في الآيات"
+                      >
+                        <FileText className="h-5 w-5" />
+                      </button>
+                      <Search className="h-5 sm:h-6 w-5 sm:w-6 text-primary" />
+                      <button
+                        onClick={handleVoiceSearch}
+                        className={`p-2 rounded-full hover:bg-muted transition-colors duration-200 ${isListening ? "bg-destructive text-destructive-foreground" : ""}`}
+                      >
+                        <Mic className="h-5 sm:h-6 w-5 sm:w-6" />
+                      </button>
+                      <button
+                        onClick={toggleTheme}
+                        className="p-2 rounded-full hover:bg-muted transition-colors duration-200"
+                      >
+                        {theme === "dark" ? "☀️" : "🌙"}
+                      </button>
+                    </div>
                   </div>
+                  {searchMode === "verses" && (
+                    <Button
+                      onClick={handleVerseSearch}
+                      className="p-2 rounded-xl bg-primary text-primary-foreground transition-colors duration-200"
+                      aria-label="بحث"
+                    >
+                      <Search className="h-5 w-5" />
+                    </Button>
+                  )}
                 </div>
                 <AnimatePresence>
-                  {showSearchDropdown && filteredBooks.length > 0 && (
+                  {showSearchDropdown && searchMode === "books" && filteredBooks.length > 0 && (
                     <motion.div
                       initial={{ opacity: 0, y: -20, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -809,10 +818,42 @@ export default function TextBible() {
                       ))}
                     </motion.div>
                   )}
+                  {showSearchDropdown && searchMode === "verses" && verseSearchResults.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      className="absolute w-full mt-2 bg-card border border-border rounded-xl shadow-2xl max-h-60 overflow-y-auto z-50"
+                    >
+                      {verseSearchResults.map((result, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setChapterText([`${result.book} ${result.chapter}:${result.verse}\n${result.text}`]);
+                            setCurrentSlide(0);
+                            setShowFullScreen(true);
+                            document.documentElement.requestFullscreen().catch((err) => {
+                              console.warn("Error attempting to enable fullscreen:", err);
+                            });
+                            setShowSearchDropdown(false);
+                          }}
+                          className="w-full text-right px-4 py-3 text-sm hover:bg-muted transition-colors border-b last:border-b-0"
+                        >
+                          {`${result.book} ${result.chapter}:${result.verse} - ${result.text.substring(0, 50)}...`}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
                 </AnimatePresence>
-                {showSearchDropdown && filteredBooks.length === 0 && searchQuery && (
+                {showSearchDropdown && searchMode === "books" && filteredBooks.length === 0 && searchQuery && (
                   <div className="absolute w-full mt-2 bg-card border border-border rounded-xl shadow-2xl p-2 text-right text-destructive z-50">
                     لا توجد أسفار مطابقة
+                  </div>
+                )}
+                {showSearchDropdown && searchMode === "verses" && verseSearchResults.length === 0 && searchQuery && (
+                  <div className="absolute w-full mt-2 bg-card border border-border rounded-xl shadow-2xl p-2 text-right text-destructive z-50">
+                    لا توجد آيات مطابقة
                   </div>
                 )}
               </div>
