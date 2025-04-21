@@ -138,6 +138,40 @@ const textColors = [
   { name: "بنفسجي", class: "text-purple-500" },
 ];
 
+// دالة للبحث عن الآيات المتطابقة
+const findMatchingVerses = (song: Song, query: string) => {
+  const normalizedQuery = normalizeText(query);
+  const matchingVerses: { type: string; index: number; line: string }[] = [];
+
+  // البحث في الآيات
+  song.verses.forEach((verse, verseIndex) => {
+    verse.forEach((line, lineIndex) => {
+      if (normalizeText(line).includes(normalizedQuery)) {
+        matchingVerses.push({ type: "verse", index: verseIndex, line: line });
+      }
+    });
+  });
+
+  // البحث في المقاطع إذا كانت موجودة
+  if (song.chorus) {
+    song.chorus.forEach((line, lineIndex) => {
+      if (normalizeText(line).includes(normalizedQuery)) {
+        matchingVerses.push({ type: "chorus", index: lineIndex, line: line });
+      }
+    });
+  }
+
+  return matchingVerses;
+};
+
+const normalizeText = (text: string): string => {
+  return text
+    .toLowerCase()
+    .replace(/[\u064B-\u065F]/g, "") // إزالة التشكيل
+    .replace(/[^\w\s\u0600-\u06FF]/g, " ") // إزالة الرموز غير المرغوب فيها
+    .trim();
+};
+
 export default function HeroSection() {
   const { theme, toggleTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
@@ -184,31 +218,18 @@ export default function HeroSection() {
 
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
 
-  // دالة لحساب حجم الخط ديناميكيًا بناءً على طول النص
   const calculateDynamicFontSize = (text: string) => {
     const textLength = text.length;
-    const baseFontSize = globalFontSize; // حجم الخط الأساسي المحدد من السلايدر
-    const minFontSize = 24; // الحد الأدنى لحجم الخط
-    const maxFontSize = 120; // الحد الأقصى لحجم الخط
+    const baseFontSize = globalFontSize;
+    const minFontSize = 24;
+    const maxFontSize = 120;
 
-    // إذا كان النص قصيرًا جدًا (أقل من 50 حرفًا)، نكبر الخط
     if (textLength < 50) {
-      return Math.min(baseFontSize * 1.2, maxFontSize); // زيادة بنسبة 20%
+      return Math.min(baseFontSize * 1.2, maxFontSize);
+    } else if (textLength > 200) {
+      return Math.max(baseFontSize * 0.8, minFontSize);
     }
-    // إذا كان النص طويلًا جدًا (أكثر من 200 حرف)، نصغر الخط
-    else if (textLength > 200) {
-      return Math.max(baseFontSize * 0.8, minFontSize); // تقليل بنسبة 20%
-    }
-    // إذا كان النص متوسطًا (بين 50 و200 حرف)، نستخدم حجم الخط الأساسي
     return baseFontSize;
-  };
-
-  const normalizeText = (text: string): string => {
-    return text
-      .toLowerCase()
-      .replace(/[\u064B-\u065F]/g, "")
-      .replace(/[^\w\s\u0600-\u06FF]/g, " ")
-      .trim();
   };
 
   const fuse = useMemo(() => {
@@ -675,7 +696,7 @@ export default function HeroSection() {
         <div className="p-4 sm:p-6 w-full">
           <div className="flex flex-col items-center mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-center mb-2 text-foreground">
-              الــــــتــــــرانــــــيــــــم 
+              الــــــتــــــرانــــــيــــــم
             </h1>
             <p className="text-muted-foreground text-center max-w-md text-sm sm:text-base font-semibold">
               ابحث عن ترانيمك المفضلة واعرضها بطريقة احترافية
@@ -786,31 +807,44 @@ export default function HeroSection() {
                   </h3>
                 </div>
                 <div className="max-h-[50vh] overflow-y-auto">
-                  {searchResults.map((item, index) => (
-                    <div
-                      key={index}
-                      className="w-full text-right px-4 sm:px-6 py-4 hover:bg-muted text-foreground transition-colors duration-200 border-b border-border last:border“B-0 flex justify-between items-center"
-                    >
-                      <button
-                        className="flex-1 text-right font-semibold"
-                        onClick={() => handleItemSelect(item)}
+                  {searchResults.map((item, index) => {
+                    const matchingVerses = findMatchingVerses(item, searchQuery);
+                    return (
+                      <div
+                        key={index}
+                        className="w-full text-right px-4 sm:px-6 py-4 hover:bg-muted text-foreground transition-colors duration-200 border-b border-border last:border-b-0"
                       >
-                        {item.title}
-                      </button>
-                      <button
-                        onClick={() => toggleFavorite(item.title)}
-                        className="ml-2 p-2 rounded-full hover:bg-muted"
-                      >
-                        <Heart
-                          className={`h-5 w-5 ${
-                            favorites.includes(item.title)
-                              ? "fill-red-500 text-red-500"
-                              : "text-muted-foreground"
-                          }`}
-                        />
-                      </button>
-                    </div>
-                  ))}
+                        <div className="flex justify-between items-center">
+                          <button
+                            className="flex-1 text-right font-semibold"
+                            onClick={() => handleItemSelect(item)}
+                          >
+                            {item.title}
+                          </button>
+                          <button
+                            onClick={() => toggleFavorite(item.title)}
+                            className="ml-2 p-2 rounded-full hover:bg-muted"
+                          >
+                            <Heart
+                              className={`h-5 w-5 ${
+                                favorites.includes(item.title)
+                                  ? "fill-red-500 text-red-500"
+                                  : "text-muted-foreground"
+                              }`}
+                            />
+                          </button>
+                        </div>
+                        {matchingVerses.length > 0 && (
+                          <div className="mt-2 text-sm text-muted-foreground">
+                            {matchingVerses.slice(0, 2).map((verse, vIndex) => (
+                              <p key={vIndex}>{verse.line}</p>
+                            ))}
+                            {matchingVerses.length > 2 && <p>...</p>}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
@@ -931,7 +965,7 @@ export default function HeroSection() {
                           fontFamily: '"Noto Sans Arabic", sans-serif',
                           fontWeight: 900,
                           direction: 'rtl',
-                          textAlign: 'center', // تأكيد المحازاة للمنتصف
+                          textAlign: 'center',
                         }}
                       >
                         {formatContent(selectedItem)[currentSlide]}
@@ -958,7 +992,7 @@ export default function HeroSection() {
                             fontFamily: '"Noto Sans Arabic", sans-serif',
                             fontWeight: 900,
                             direction: 'rtl',
-                            textAlign: 'center', // تأكيد المحازاة للمنتصف
+                            textAlign: 'center',
                           }}
                         >
                           {content}
@@ -976,7 +1010,7 @@ export default function HeroSection() {
                       fontFamily: '"Noto Sans Arabic", sans-serif',
                       fontWeight: 900,
                       direction: 'rtl',
-                      textAlign: 'center', // تأكيد المحازاة للمنتصف
+                      textAlign: 'center',
                     }}
                   >
                     لا يوجد محتوى محدد
