@@ -107,6 +107,17 @@ type SearchResult = {
   text: string;
 };
 
+// أنواع التحديات
+type ChallengeType = "completeVerse" | "identifyBook";
+
+// واجهة للتحدي
+interface Challenge {
+  type: ChallengeType;
+  question: string;
+  correctAnswer: string;
+  options: string[];
+}
+
 const themes: Theme[] = [
   { name: "افتراضي", background: "bg-black", text: "text-white" },
   { name: "أزرق داكن", background: "bg-gradient-to-br from-blue-800 to-blue-950", text: "text-white" },
@@ -205,6 +216,15 @@ export default function TextBible() {
   const [imageSize, setImageSize] = useState(50);
   const [searchMode, setSearchMode] = useState<"books" | "verses">("books");
   const [verseSearchResults, setVerseSearchResults] = useState<SearchResult[]>([]);
+  const [showChallenge, setShowChallenge] = useState(false);
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
+  const [score, setScore] = useState(() => {
+    if (typeof window !== "undefined") {
+      const savedScore = localStorage.getItem("bibleChallengeScore");
+      return savedScore ? parseInt(savedScore, 10) : 0;
+    }
+    return 0;
+  });
 
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
@@ -700,6 +720,88 @@ export default function TextBible() {
     return baseFontSize;
   };
 
+  // دالة لتوليد تحدي عشوائي
+  const generateChallenge = useCallback(() => {
+    if (!bibleData) return;
+
+    const challengeTypes: ChallengeType[] = ["completeVerse", "identifyBook"];
+    const randomType = challengeTypes[Math.floor(Math.random() * challengeTypes.length)];
+
+    let question = "";
+    let correctAnswer = "";
+    let options: string[] = [];
+
+    if (randomType === "completeVerse") {
+      // إكمال الآية
+      const allVerses = bibleData.flatMap(section =>
+        section.books.flatMap(book =>
+          book.chapters.flatMap(chapter => chapter.verses)
+        )
+      );
+      const randomVerse = allVerses[Math.floor(Math.random() * allVerses.length)];
+      const words = randomVerse.text.split(" ");
+      if (words.length < 4) return; // تأكد من أن الآية طويلة بما يكفي
+
+      const hiddenIndex = Math.floor(Math.random() * (words.length - 1)) + 1; // تجنب إخفاء الكلمة الأولى
+      const hiddenWord = words[hiddenIndex];
+      words[hiddenIndex] = "_____";
+      question = words.join(" ");
+      correctAnswer = hiddenWord;
+
+      // توليد خيارات خاطئة
+      options = [hiddenWord];
+      while (options.length < 4) {
+        const randomWord = allVerses[Math.floor(Math.random() * allVerses.length)].text.split(" ")[Math.floor(Math.random() * 5)];
+        if (!options.includes(randomWord) && randomWord !== hiddenWord) {
+          options.push(randomWord);
+        }
+      }
+      options.sort(() => Math.random() - 0.5);
+    } else if (randomType === "identifyBook") {
+      // تحديد السفر
+      const allBooks = bibleData.flatMap(section => section.books);
+      const randomBook = allBooks[Math.floor(Math.random() * allBooks.length)];
+      const randomChapter = randomBook.chapters[Math.floor(Math.random() * randomBook.chapters.length)];
+      const randomVerse = randomChapter.verses[Math.floor(Math.random() * randomChapter.verses.length)];
+      const verseSnippet = randomVerse.text.split(" ").slice(0, 5).join(" ") + "...";
+      question = `في أي سفر تجد هذه الآية: "${verseSnippet}"؟`;
+      correctAnswer = randomBook.name;
+
+      // توليد خيارات خاطئة
+      options = [randomBook.name];
+      while (options.length < 4) {
+        const randomBookName = allBooks[Math.floor(Math.random() * allBooks.length)].name;
+        if (!options.includes(randomBookName)) {
+          options.push(randomBookName);
+        }
+      }
+      options.sort(() => Math.random() - 0.5);
+    }
+
+    setChallenge({ type: randomType, question, correctAnswer, options });
+  }, [bibleData]);
+
+  const handleChallengeAnswer = (answer: string) => {
+    if (!challenge) return;
+
+    const isCorrect = answer === challenge.correctAnswer;
+    const newScore = isCorrect ? score + 10 : score - 5;
+    setScore(newScore);
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("bibleChallengeScore", newScore.toString());
+    }
+
+    alert(isCorrect ? "إجابة صحيحة! +10 نقاط" : "إجابة خاطئة. -5 نقاط");
+    generateChallenge();
+  };
+
+  useEffect(() => {
+    if (showChallenge && !challenge) {
+      generateChallenge();
+    }
+  }, [showChallenge, challenge, generateChallenge]);
+
   return (
     <div
       className={`relative min-h-screen bg-background ${
@@ -728,7 +830,7 @@ export default function TextBible() {
                 ref={searchRef}
               >
                 <div className="absolute inset-0 bg-black rounded-2xl blur-xl opacity-20 -z-10"></div>
-                
+
                 {/* الأيقونات فوق السيرش بار */}
                 <div className="flex justify-end gap-4 mb-2">
                   <button
@@ -763,6 +865,7 @@ export default function TextBible() {
                         setError(null);
                         if (e.target.value.trim()) {
                           setShowRecentSearches(false);
+                          setShowChallenge(false);
                         }
                       }}
                       onFocus={() => {
@@ -775,7 +878,7 @@ export default function TextBible() {
                         theme === "dark" ? "border-white" : "border-black"
                       } bg-card text-foreground shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-ring focus:border-${
                         theme === "dark" ? "white" : "black"
-                      } backdrop-blur-sm hover:shadow-2xl pl-16 sm:pl-20`} // تعديل الـ padding لتجنب التراكم
+                      } backdrop-blur-sm hover:shadow-2xl pl-16 sm:pl-20`}
                     />
                     <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-2 sm:gap-3">
                       <button
@@ -991,7 +1094,7 @@ export default function TextBible() {
 
               {favoriteBibleChapters.length > 0 &&
                 !searchQuery.trim() &&
-                !showRecentSearches && (
+                !showRecentSearches && !showChallenge && (
                   <div className="w-full max-w-3xl mx-auto mt-6 sm:mt-8">
                     <h2 className="text-lg sm:text-xl font-bold mb-4 text-foreground">
                       المفضلة
@@ -1027,6 +1130,57 @@ export default function TextBible() {
                     </div>
                   </div>
                 )}
+
+              {!searchQuery.trim() && !showRecentSearches && (
+                <div className="w-full max-w-3xl mx-auto mt-6 sm:mt-8">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                      تحدي الكتاب المقدس
+                    </h2>
+                    <Button
+                      onClick={() => {
+                        setShowChallenge(true);
+                        generateChallenge();
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      ابدأ التحدي
+                    </Button>
+                  </div>
+                  {showChallenge && challenge && (
+                    <Card className="p-4">
+                      <CardContent>
+                        <div className="text-center mb-4">
+                          <h3 className="text-lg font-bold">النقاط: {score}</h3>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            {challenge.type === "completeVerse" ? "أكمل الآية:" : "في أي سفر تجد هذه الآية؟"}
+                          </p>
+                          <p className="text-base font-semibold mt-2">
+                            {challenge.question}
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {challenge.options.map((option, index) => (
+                            <Button
+                              key={index}
+                              onClick={() => handleChallengeAnswer(option)}
+                              className="w-full bg-gray-700 hover:bg-gray-600 text-white"
+                            >
+                              {option}
+                            </Button>
+                          ))}
+                        </div>
+                        <Button
+                          onClick={generateChallenge}
+                          className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          تحدي جديد
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>
@@ -1111,224 +1265,161 @@ export default function TextBible() {
                           fontFamily: '"Noto Sans Arabic", sans-serif',
                           fontWeight: 900,
                         }}
-                    >
-                      {text}
-                    </p>
-                  ))}
+                      >
+                        {text}
+                      </p>
+                    ))}
+                  </div>
+                )
+              ) : (
+                <div className="text-center px-4 sm:px-8 w-full h-full flex items-center justify-center">
+                  <p
+                    className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
+                    style={{
+                      fontSize: `${globalFontSize}px`,
+                      lineHeight: `${lineSpacing}`,
+                      fontFamily: '"Noto Sans Arabic", sans-serif',
+                      fontWeight: 900,
+                    }}
+                  >
+                    لا يوجد محتوى لعرضه
+                  </p>
                 </div>
-              )
-            ) : (
-              <div className="text-center px-4 sm:px-8 w-full h-full flex items-center justify-center">
-                <p
-                  className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
-                  style={{
-                    fontSize: `${globalFontSize}px`,
-                    lineHeight: `${lineSpacing}`,
-                    fontFamily: '"Noto Sans Arabic", sans-serif',
-                    fontWeight: 900,
-                  }}
+              )}
+              {watermark && (
+                <div
+                  className={`absolute top-4 xs:bottom-4 right-4 opacity-50 ${watermarkColor.class} z-30 text-sm xs:text-base`}
+                  style={{ fontSize: `${watermarkFontSize}px` }}
                 >
-                  لا يوجد محتوى لعرضه
-                </p>
-              </div>
-            )}
-            {watermark && (
-              <div
-                className={`absolute top-4 xs:bottom-4 right-4 opacity-50 ${watermarkColor.class} z-30 text-sm xs:text-base`}
-                style={{ fontSize: `${watermarkFontSize}px` }}
-              >
-                {watermark}
-              </div>
-            )}
-          </motion.div>
+                  {watermark}
+                </div>
+              )}
+            </motion.div>
 
-          <div className="fixed top-8 left-8 flex items-center gap-4 sm:gap-6 z-30">
-            <button
-              onClick={exitFullScreen}
-              className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200"
-              aria-label="إغلاق"
-            >
-              <X className="h-6 w-6" />
-            </button>
-
-            <div className="relative">
+            <div className="fixed top-8 left-8 flex items-center gap-4 sm:gap-6 z-30">
               <button
-                onClick={() => setShowSettings((prev) => !prev)}
+                onClick={exitFullScreen}
                 className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200"
-                aria-label="الإعدادات"
+                aria-label="إغلاق"
               >
-                <Settings className="h-6 w-6" />
+                <X className="h-6 w-6" />
               </button>
 
-              {showSettings && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="fixed inset-0 bg-black/50 flex items-center justify-center z-40"
-                  onClick={() => setShowSettings(false)}
+              <div className="relative">
+                <button
+                  onClick={() => setShowSettings((prev) => !prev)}
+                  className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200"
+                  aria-label="الإعدادات"
                 >
-                  <div
-                    className="bg-black border border-gray-500 rounded-xl shadow-2xl p-4 xs:p-6 w-11/12 sm:w-80 max-h-[80vh] overflow-y-auto"
-                    onClick={(e) => e.stopPropagation()}
+                  <Settings className="h-6 w-6" />
+                </button>
+
+                {showSettings && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-40"
+                    onClick={() => setShowSettings(false)}
                   >
-                    <Tabs
-                      defaultValue={activeTab}
-                      onValueChange={(value) => {
-                        setActiveTab(value);
-                      }}
+                    <div
+                      className="bg-black border border-gray-500 rounded-xl shadow-2xl p-4 xs:p-6 w-11/12 sm:w-80 max-h-[80vh] overflow-y-auto"
                       onClick={(e) => e.stopPropagation()}
-                      className="w-full"
                     >
-                      <TabsList className="grid grid-cols-3 mb-4 bg-black border-gray-500">
-                        <TabsTrigger
-                          value="theme"
-                          className="text-xs xs:text-sm text-white data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          المظهر
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="text"
-                          className="text-xs xs:text-sm text-white data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          النص
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="advanced"
-                          className="text-xs xs:text-sm text-white data-[state=active]:bg-blue-600 data-[state=active]:text-white"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          متقدم
-                        </TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="theme" className="space-y-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Palette className="h-4 w-4 text-gray-400" />
-                          <div className="font-bold text-white text-sm">
-                            الخلفية
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                          {[...themes, ...customThemes].map((theme) => (
-                            <button
-                              key={theme.name}
-                              onClick={() => setCurrentTheme(theme)}
-                              className={`p-2 xs:p-3 rounded-lg ${
-                                theme.isCustom ? "bg-gray-700" : theme.background
-                              } ${theme.text} text-xs xs:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105`}
-                              style={
-                                theme.isCustom && theme.customUrl
-                                  ? {
-                                      backgroundImage: `url(${theme.customUrl})`,
-                                      backgroundSize: "cover",
-                                      backgroundPosition: "center",
-                                    }
-                                  : {}
-                              }
-                            >
-                              {theme.name}
-                            </button>
-                          ))}
-                        </div>
-
-                        <div className="mb-4">
-                          <Button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs xs:text-sm transition-colors duration-200"
-                            size="sm"
+                      <Tabs
+                        defaultValue={activeTab}
+                        onValueChange={(value) => {
+                          setActiveTab(value);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full"
+                      >
+                        <TabsList className="grid grid-cols-3 mb-4 bg-black border-gray-500">
+                          <TabsTrigger
+                            value="theme"
+                            className="text-xs xs:text-sm text-white data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            <Upload className="h-4 w-4 mr-2" />
-                            إضافة خلفية مخصصة
-                          </Button>
-                          <input
-                            type="file"
-                            ref={fileInputRef}
-                            accept="image/*"
-                            onChange={handleUploadBackground}
-                            className="hidden"
-                          />
-                        </div>
-                      </TabsContent>
+                            المظهر
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="text"
+                            className="text-xs xs:text-sm text-white data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            النص
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="advanced"
+                            className="text-xs xs:text-sm text-white data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            متقدم
+                          </TabsTrigger>
+                        </TabsList>
 
-                      <TabsContent value="text" className="space-y-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Type className="h-4 w-4 text-gray-400" />
-                          <div className="font-bold text-white text-sm">
-                            لون النص
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                          {textColors.map((color) => (
-                            <button
-                              key={color.name}
-                              onClick={() => setCurrentTextColor(color)}
-                              className={`p-2 xs:p-3 rounded-lg bg-gray-700 ${color.class} text-xs xs:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105`}
-                            >
-                              {color.name}
-                            </button>
-                          ))}
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Label className="text-xs xs:text-sm text-white font-semibold">
-                              حجم الخط: {globalFontSize}px
-                            </Label>
-                          </div>
-                          <Slider
-                            min={20}
-                            max={96}
-                            step={2}
-                            value={[globalFontSize]}
-                            onValueChange={(value) => setGlobalFontSize(value[0])}
-                          />
-                        </div>
-
-                        <div className="space-y-2 mt-4">
-                          <div className="flex items-center justify-between">
-                            <Label className="text-xs xs:text-sm text-white font-semibold">
-                              المسافة بين السطور: {lineSpacing.toFixed(1)}
-                            </Label>
-                          </div>
-                          <Slider
-                            min={1.2}
-                            max={3}
-                            step={0.1}
-                            value={[lineSpacing]}
-                            onValueChange={(value) => setLineSpacing(value[0])}
-                          />
-                        </div>
-
-                        <div className="pt-4 border-t border-gray-500">
+                        <TabsContent value="theme" className="space-y-4">
                           <div className="flex items-center gap-2 mb-2">
-                            <Copyright className="h-4 w-4 text-gray-400" />
+                            <Palette className="h-4 w-4 text-gray-400" />
                             <div className="font-bold text-white text-sm">
-                              الشعار
+                              الخلفية
                             </div>
                           </div>
-                          <Input
-                            type="text"
-                            value={watermark}
-                            onChange={(e) => setWatermark(e.target.value)}
-                            placeholder="أدخل نص الشعار هنا"
-                            className="w-full p-2 border border-gray-500 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-600 mb-4 text-sm text-right"
-                          />
+                          <div className="grid grid-cols-2 gap-3 mb-4">
+                            {[...themes, ...customThemes].map((theme) => (
+                              <button
+                                key={theme.name}
+                                onClick={() => setCurrentTheme(theme)}
+                                className={`p-2 xs:p-3 rounded-lg ${
+                                  theme.isCustom ? "bg-gray-700" : theme.background
+                                } ${theme.text} text-xs xs:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105`}
+                                style={
+                                  theme.isCustom && theme.customUrl
+                                    ? {
+                                        backgroundImage: `url(${theme.customUrl})`,
+                                        backgroundSize: "cover",
+                                        backgroundPosition: "center",
+                                      }
+                                    : {}
+                                }
+                              >
+                                {theme.name}
+                              </button>
+                            ))}
+                          </div>
 
+                          <div className="mb-4">
+                            <Button
+                              onClick={() => fileInputRef.current?.click()}
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs xs:text-sm transition-colors duration-200"
+                              size="sm"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              إضافة خلفية مخصصة
+                            </Button>
+                            <input
+                              type="file"
+                              ref={fileInputRef}
+                              accept="image/*"
+                              onChange={handleUploadBackground}
+                              className="hidden"
+                            />
+                          </div>
+                        </TabsContent>
+
+                        <TabsContent value="text" className="space-y-4">
                           <div className="flex items-center gap-2 mb-2">
                             <Type className="h-4 w-4 text-gray-400" />
                             <div className="font-bold text-white text-sm">
-                              لون الشعار
+                              لون النص
                             </div>
                           </div>
                           <div className="grid grid-cols-2 gap-3 mb-4">
                             {textColors.map((color) => (
                               <button
                                 key={color.name}
-                                onClick={() => setWatermarkColor(color)}
+                                onClick={() => setCurrentTextColor(color)}
                                 className={`p-2 xs:p-3 rounded-lg bg-gray-700 ${color.class} text-xs xs:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105`}
                               >
                                 {color.name}
@@ -1339,328 +1430,388 @@ export default function TextBible() {
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
                               <Label className="text-xs xs:text-sm text-white font-semibold">
-                                حجم خط الشعار: {watermarkFontSize}px
+                                حجم الخط: {globalFontSize}px
                               </Label>
                             </div>
                             <Slider
-                              min={12}
-                              max={48}
-                              step={1}
-                              value={[watermarkFontSize]}
-                              onValueChange={(value) =>
-                                setWatermarkFontSize(value[0])
-                              }
+                              min={20}
+                              max={96}
+                              step={2}
+                              value={[globalFontSize]}
+                              onValueChange={(value) => setGlobalFontSize(value[0])}
                             />
                           </div>
-                        </div>
-                      </TabsContent>
 
-                      <TabsContent value="advanced" className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <Label
-                            htmlFor="display-mode"
-                            className="text-xs xs:text-sm text-white font-semibold"
-                          >
-                            وضع العرض
-                          </Label>
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              size="sm"
-                              variant={
-                                displayMode === "slides" ? "default" : "outline"
-                              }
-                              onClick={() => setDisplayMode("slides")}
-                              className={`${
-                                displayMode === "slides"
-                                  ? "bg-blue-600 text-white"
-                                  : "bg-gray-700 text-white border-gray-500"
-                              } hover:bg-blue-700 hover:text-white transition-colors duration-200`}
-                            >
-                              <Columns className="h-4 w-4 mr-2" />
-                              شرائح
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant={
-                                displayMode === "list" ? "default" : "outline"
-                              }
-                              onClick={() => setDisplayMode("list")}
-                              className={`${
-                                displayMode === "list"
-                                  ? "bg-blue-600 text-white"
-                                  : "bg-gray-700 text-white border-gray-500"
-                              } hover:bg-blue-700 hover:text-white transition-colors duration-200`}
-                            >
-                              <AlignJustify className="h-4 w-4 mr-2" />
-                              قائمة
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <Label
-                            htmlFor="auto-advance"
-                            className="text-xs xs:text-sm text-white font-semibold"
-                          >
-                            تقدم تلقائي
-                          </Label>
-                          <Switch
-                            id="auto-advance"
-                            checked={autoAdvance}
-                            onCheckedChange={setAutoAdvance}
-                            className="data-[state=checked]:bg-blue-600"
-                          />
-                        </div>
-
-                        {autoAdvance && (
-                          <div className="space-y-2">
+                          <div className="space-y-2 mt-4">
                             <div className="flex items-center justify-between">
                               <Label className="text-xs xs:text-sm text-white font-semibold">
-                                الفاصل الزمني: {autoAdvanceInterval} ثانية
+                                المسافة بين السطور: {lineSpacing.toFixed(1)}
                               </Label>
                             </div>
                             <Slider
-                              min={5}
-                              max={30}
-                              step={1}
-                              value={[autoAdvanceInterval]}
-                              onValueChange={(value) =>
-                                setAutoAdvanceInterval(value[0])
-                              }
+                              min={1.2}
+                              max={3}
+                              step={0.1}
+                              value={[lineSpacing]}
+                              onValueChange={(value) => setLineSpacing(value[0])}
                             />
                           </div>
-                        )}
 
-                        <div className="pt-4 border-t border-gray-500">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Upload className="h-4 w-4 text-gray-400" />
-                            <div className="font-bold text-white text-sm">
-                              صورة في الخلفية
+                          <div className="pt-4 border-t border-gray-500">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Copyright className="h-4 w-4 text-gray-400" />
+                              <div className="font-bold text-white text-sm">
+                                الشعار
+                              </div>
+                            </div>
+                            <Input
+                              type="text"
+                              value={watermark}
+                              onChange={(e) => setWatermark(e.target.value)}
+                              placeholder="أدخل نص الشعار هنا"
+                              className="w-full p-2 border border-gray-500 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-600 mb-4 text-sm text-right"
+                            />
+
+                            <div className="flex items-center gap-2 mb-2">
+                              <Type className="h-4 w-4 text-gray-400" />
+                              <div className="font-bold text-white text-sm">
+                                لون الشعار
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                              {textColors.map((color) => (
+                                <button
+                                  key={color.name}
+                                  onClick={() => setWatermarkColor(color)}
+                                  className={`p-2 xs:p-3 rounded-lg bg-gray-700 ${color.class} text-xs xs:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105`}
+                                >
+                                  {color.name}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <Label className="text-xs xs:text-sm text-white font-semibold">
+                                  حجم خط الشعار: {watermarkFontSize}px
+                                </Label>
+                              </div>
+                              <Slider
+                                min={12}
+                                max={48}
+                                step={1}
+                                value={[watermarkFontSize]}
+                                onValueChange={(value) =>
+                                  setWatermarkFontSize(value[0])
+                                }
+                              />
                             </div>
                           </div>
-                          <Button
-                            onClick={() => fileInputRef.current?.click()}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs xs:text-sm transition-colors duration-200"
-                            size="sm"
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            اختيار صورة
-                          </Button>
-                          <input
-                            type="file"
-                            ref={fileInputRef}
-                            accept="image/*"
-                            onChange={handleUploadImage}
-                            className="hidden"
-                          />
+                        </TabsContent>
 
-                          {backgroundImage && (
-                            <>
-                              <div className="space-y-2 mt-4">
-                                <Label className="text-xs xs:text-sm text-white font-semibold">
-                                  الموضع الأفقي: {imagePositionX}%
-                                </Label>
-                                <Slider
-                                  min={0}
-                                  max={100}
-                                  step={1}
-                                  value={[imagePositionX]}
-                                  onValueChange={(value) =>
-                                    setImagePositionX(value[0])
-                                  }
-                                  className="w-full"
-                                />
-                              </div>
-                              <div className="space-y-2 mt-4">
-                                <Label className="text-xs xs:text-sm text-white font-semibold">
-                                  الموضع العمودي: {imagePositionY}%
-                                </Label>
-                                <Slider
-                                  min={0}
-                                  max={100}
-                                  step={1}
-                                  value={[imagePositionY]}
-                                  onValueChange={(value) =>
-                                    setImagePositionY(value[0])
-                                  }
-                                  className="w-full"
-                                />
-                              </div>
-                              <div className="space-y-2 mt-4">
-                                <Label className="text-xs xs:text-sm text-white font-semibold">
-                                  الحجم: {imageSize}%
-                                </Label>
-                                <Slider
-                                  min={10}
-                                  max={100}
-                                  step={1}
-                                  value={[imageSize]}
-                                  onValueChange={(value) =>
-                                    setImageSize(value[0])
-                                  }
-                                  className="w-full"
-                                />
-                              </div>
+                        <TabsContent value="advanced" className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <Label
+                              htmlFor="display-mode"
+                              className="text-xs xs:text-sm text-white font-semibold"
+                            >
+                              وضع العرض
+                            </Label>
+                            <div className="flex items-center space-x-2">
                               <Button
-                                onClick={() => setBackgroundImage(null)}
-                                className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white text-xs xs:text-sm transition-colors duration-200"
                                 size="sm"
+                                variant={
+                                  displayMode === "slides" ? "default" : "outline"
+                                }
+                                onClick={() => setDisplayMode("slides")}
+                                className={`${
+                                  displayMode === "slides"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-gray-700 text-white border-gray-500"
+                                } hover:bg-blue-700 hover:text-white transition-colors duration-200`}
                               >
-                                إزالة الصورة
+                                <Columns className="h-4 w-4 mr-2" />
+                                شرائح
                               </Button>
-                            </>
-                          )}
-                        </div>
-
-                        <div className="pt-4 border-t border-gray-500">
-                          <div className="flex items-center gap-2 mb-4">
-                            <Info className="h-4 w-4 text-gray-400" />
-                            <div className="font-bold text-white text-sm">
-                              معلومات
+                              <Button
+                                size="sm"
+                                variant={
+                                  displayMode === "list" ? "default" : "outline"
+                                }
+                                onClick={() => setDisplayMode("list")}
+                                className={`${
+                                  displayMode === "list"
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-gray-700 text-white border-gray-500"
+                                } hover:bg-blue-700 hover:text-white transition-colors duration-200`}
+                              >
+                                <AlignJustify className="h-4 w-4 mr-2" />
+                                قائمة
+                              </Button>
                             </div>
                           </div>
-                          <div className="text-xs xs:text-sm text-gray-400 space-y-2">
-                            <p>استخدم مفاتيح الأسهم للتنقل بين الشرائح</p>
-                            <p>اضغط ESC للخروج من وضع ملء الشاشة</p>
-                            <p>اسحب يمينًا أو يسارًا على الموبايل للتنقل</p>
-                          </div>
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                    <Button
-                      className="w-full mt-6 text-xs xs:text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
-                      onClick={saveSettings}
-                    >
-                      حفظ الإعدادات
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-            </div>
 
-            <div className="flex gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() =>
-                        toggleFavorite(`${selectedBook}:${selectedChapter}`)
-                      }
-                      className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200"
-                      aria-label={
-                        favoriteBibleChapters.includes(
-                          `${selectedBook}:${selectedChapter}`,
-                        )
-                          ? "إزالة من المفضلة"
-                          : "إضافة إلى المفضلة"
-                      }
-                      disabled={!selectedBook || !selectedChapter}
-                    >
-                      <Heart
-                        className={`h-6 w-6 ${
+                          <div className="flex items-center justify-between">
+                            <Label
+                              htmlFor="auto-advance"
+                              className="text-xs xs:text-sm text-white font-semibold"
+                            >
+                              تقدم تلقائي
+                            </Label>
+                            <Switch
+                              id="auto-advance"
+                              checked={autoAdvance}
+                              onCheckedChange={setAutoAdvance}
+                              className="data-[state=checked]:bg-blue-600"
+                            />
+                          </div>
+
+                          {autoAdvance && (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <Label className="text-xs xs:text-sm text-white font-semibold">
+                                  الفاصل الزمني: {autoAdvanceInterval} ثانية
+                                </Label>
+                              </div>
+                              <Slider
+                                min={5}
+                                max={30}
+                                step={1}
+                                value={[autoAdvanceInterval]}
+                                onValueChange={(value) =>
+                                  setAutoAdvanceInterval(value[0])
+                                }
+                              />
+                            </div>
+                          )}
+
+                          <div className="pt-4 border-t border-gray-500">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Upload className="h-4 w-4 text-gray-400" />
+                              <div className="font-bold text-white text-sm">
+                                صورة في الخلفية
+                              </div>
+                            </div>
+                            <Button
+                              onClick={() => fileInputRef.current?.click()}
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs xs:text-sm transition-colors duration-200"
+                              size="sm"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              اختيار صورة
+                            </Button>
+                            <input
+                              type="file"
+                              ref={fileInputRef}
+                              accept="image/*"
+                              onChange={handleUploadImage}
+                              className="hidden"
+                            />
+
+                            {backgroundImage && (
+                              <>
+                                <div className="space-y-2 mt-4">
+                                  <Label className="text-xs xs:text-sm text-white font-semibold">
+                                    الموضع الأفقي: {imagePositionX}%
+                                  </Label>
+                                  <Slider
+                                    min={0}
+                                    max={100}
+                                    step={1}
+                                    value={[imagePositionX]}
+                                    onValueChange={(value) =>
+                                      setImagePositionX(value[0])
+                                    }
+                                    className="w-full"
+                                  />
+                                </div>
+                                <div className="space-y-2 mt-4">
+                                  <Label className="text-xs xs:text-sm text-white font-semibold">
+                                    الموضع العمودي: {imagePositionY}%
+                                  </Label>
+                                  <Slider
+                                    min={0}
+                                    max={100}
+                                    step={1}
+                                    value={[imagePositionY]}
+                                    onValueChange={(value) =>
+                                      setImagePositionY(value[0])
+                                    }
+                                    className="w-full"
+                                  />
+                                </div>
+                                <div className="space-y-2 mt-4">
+                                  <Label className="text-xs xs:text-sm text-white font-semibold">
+                                    الحجم: {imageSize}%
+                                  </Label>
+                                  <Slider
+                                    min={10}
+                                    max={100}
+                                    step={1}
+                                    value={[imageSize]}
+                                    onValueChange={(value) =>
+                                      setImageSize(value[0])
+                                    }
+                                    className="w-full"
+                                  />
+                                </div>
+                                <Button
+                                  onClick={() => setBackgroundImage(null)}
+                                  className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white text-xs xs:text-sm transition-colors duration-200"
+                                  size="sm"
+                                >
+                                  إزالة الصورة
+                                </Button>
+                              </>
+                            )}
+                          </div>
+
+                          <div className="pt-4 border-t border-gray-500">
+                            <div className="flex items-center gap-2 mb-4">
+                              <Info className="h-4 w-4 text-gray-400" />
+                              <div className="font-bold text-white text-sm">
+                                معلومات
+                              </div>
+                            </div>
+                            <div className="text-xs xs:text-sm text-gray-400 space-y-2">
+                              <p>استخدم مفاتيح الأسهم للتنقل بين الشرائح</p>
+                              <p>اضغط ESC للخروج من وضع ملء الشاشة</p>
+                              <p>اسحب يمينًا أو يسارًا على الموبايل للتنقل</p>
+                            </div>
+                          </div>
+                        </TabsContent>
+                      </Tabs>
+                      <Button
+                        className="w-full mt-6 text-xs xs:text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
+                        onClick={saveSettings}
+                      >
+                        حفظ الإعدادات
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() =>
+                          toggleFavorite(`${selectedBook}:${selectedChapter}`)
+                        }
+                        className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200"
+                        aria-label={
                           favoriteBibleChapters.includes(
                             `${selectedBook}:${selectedChapter}`,
                           )
-                            ? "fill-red-500 text-red-500"
-                            : "text-white"
-                        }`}
-                      />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {favoriteBibleChapters.includes(
-                      `${selectedBook}:${selectedChapter}`,
-                    )
-                      ? "إزالة من المفضلة"
-                      : "إضافة إلى المفضلة"}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => {
-                        const content = chapterText.join("\n\n");
-                        const blob = new Blob([content], {
-                          type: "text/plain",
-                        });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = url;
-                        a.download = `${selectedBook}_${selectedChapter}.txt`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                      }}
-                      className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200"
-                      aria-label="تنزيل"
-                      disabled={chapterText.length === 0}
-                    >
-                      <Download className="h-6 w-6" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>تنزيل النص</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                            ? "إزالة من المفضلة"
+                            : "إضافة إلى المفضلة"
+                        }
+                        disabled={!selectedBook || !selectedChapter}
+                      >
+                        <Heart
+                          className={`h-6 w-6 ${
+                            favoriteBibleChapters.includes(
+                              `${selectedBook}:${selectedChapter}`,
+                            )
+                              ? "fill-red-500 text-red-500"
+                              : "text-white"
+                          }`}
+                        />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {favoriteBibleChapters.includes(
+                        `${selectedBook}:${selectedChapter}`,
+                      )
+                        ? "إزالة من المفضلة"
+                        : "إضافة إلى المفضلة"}
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => {
+                          const content = chapterText.join("\n\n");
+                          const blob = new Blob([content], {
+                            type: "text/plain",
+                          });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = `${selectedBook}_${selectedChapter}.txt`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          URL.revokeObjectURL(url);
+                        }}
+                        className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200"
+                        aria-label="تنزيل"
+                        disabled={chapterText.length === 0}
+                      >
+                        <Download className="h-6 w-6" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>تنزيل النص</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
+
+            {displayMode === "slides" && (
+              <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 sm:gap-6 z-30">
+                <button
+                  onClick={previousSlide}
+                  className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
+                    currentSlide === 0
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-white/20"
+                  }`}
+                  disabled={currentSlide === 0}
+                  aria-label="الشريحة السابقة"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+
+                <span className="text-white font-semibold">
+                  {chapterText.length > 0
+                    ? `${currentSlide + 1} / ${chapterText.length}`
+                    : "0 / 0"}
+                </span>
+
+                <button
+                  onClick={nextSlide}
+                  className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
+                    currentSlide === chapterText.length - 1
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-white/20"
+                  }`}
+                  disabled={currentSlide === chapterText.length - 1}
+                  aria-label="الشريحة التالية"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      )}
+
+      {error && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-card p-6 rounded-xl shadow-2xl max-w-md">
+            <h3 className="text-xl font-bold text-destructive mb-4">خطأ</h3>
+            <p className="text-foreground">{error}</p>
+            <Button
+              className="mt-4 w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              onClick={() => setError(null)}
+            >
+              إغلاق
+            </Button>
           </div>
-
-          {displayMode === "slides" && (
-            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 sm:gap-6 z-30">
-              <button
-                onClick={previousSlide}
-                className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
-                  currentSlide === 0
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-white/20"
-                }`}
-                disabled={currentSlide === 0}
-                aria-label="الشريحة السابقة"
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </button>
-
-              <span className="text-white font-semibold">
-                {chapterText.length > 0
-                  ? `${currentSlide + 1} / ${chapterText.length}`
-                  : "0 / 0"}
-              </span>
-
-              <button
-                onClick={nextSlide}
-                className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
-                  currentSlide === chapterText.length - 1
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-white/20"
-                }`}
-                disabled={currentSlide === chapterText.length - 1}
-                aria-label="الشريحة التالية"
-              >
-                <ChevronRight className="h-6 w-6" />
-              </button>
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
-    )}
-
-    {error && (
-      <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-        <div className="bg-card p-6 rounded-xl shadow-2xl max-w-md">
-          <h3 className="text-xl font-bold text-destructive mb-4">خطأ</h3>
-          <p className="text-foreground">{error}</p>
-          <Button
-            className="mt-4 w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-            onClick={() => setError(null)}
-          >
-            إغلاق
-          </Button>
         </div>
-      </div>
-    )}
-  </div>
-);
+      )}
+    </div>
+  );
 }
