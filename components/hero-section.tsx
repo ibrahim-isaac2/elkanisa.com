@@ -1,3 +1,4 @@
+
 "use client";
 
 import type React from "react";
@@ -17,6 +18,7 @@ import {
   Download,
   AlignJustify,
   Columns,
+  PlusCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -33,6 +35,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useTheme } from "@/app/ThemeContext";
 import Fuse from "fuse.js";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // تعريفات الأنواع المخصصة لـ SpeechRecognition
 interface SpeechRecognitionResult {
@@ -138,12 +141,17 @@ const textColors = [
   { name: "بنفسجي", class: "text-purple-500" },
 ];
 
+const transitionOptions = [
+  { name: "تلاشي", value: "fade" },
+  { name: "انزلاق", value: "slide" },
+  { name: "بدون تأثير", value: "none" },
+];
+
 // دالة للبحث عن الآيات المتطابقة
 const findMatchingVerses = (song: Song, query: string) => {
   const normalizedQuery = normalizeText(query);
   const matchingVerses: { type: string; index: number; line: string }[] = [];
 
-  // البحث في الآيات
   song.verses.forEach((verse, verseIndex) => {
     verse.forEach((line, lineIndex) => {
       if (normalizeText(line).includes(normalizedQuery)) {
@@ -152,7 +160,6 @@ const findMatchingVerses = (song: Song, query: string) => {
     });
   });
 
-  // البحث في المقاطع إذا كانت موجودة
   if (song.chorus) {
     song.chorus.forEach((line, lineIndex) => {
       if (normalizeText(line).includes(normalizedQuery)) {
@@ -167,8 +174,8 @@ const findMatchingVerses = (song: Song, query: string) => {
 const normalizeText = (text: string): string => {
   return text
     .toLowerCase()
-    .replace(/[\u064B-\u065F]/g, "") // إزالة التشكيل
-    .replace(/[^\w\s\u0600-\u06FF]/g, " ") // إزالة الرموز غير المرغوب فيها
+    .replace(/[\u064B-\u065F]/g, "")
+    .replace(/[^\w\s\u0600-\u06FF]/g, " ")
     .trim();
 };
 
@@ -203,11 +210,26 @@ export default function HeroSection() {
   const [autoAdvance, setAutoAdvance] = useState(false);
   const [autoAdvanceInterval, setAutoAdvanceInterval] = useState(10);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [playlist, setPlaylist] = useState<string[]>([]);
   const [displayMode, setDisplayMode] = useState<"slides" | "list">("slides");
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [imagePositionX, setImagePositionX] = useState(50);
   const [imagePositionY, setImagePositionY] = useState(50);
   const [imageSize, setImageSize] = useState(50);
+  const [showChallenge, setShowChallenge] = useState(false);
+  const [challenge, setChallenge] = useState<{
+    question: string;
+    correctAnswer: string;
+    options: string[];
+  } | null>(null);
+  const [score, setScore] = useState(() => {
+    if (typeof window !== "undefined") {
+      const savedScore = localStorage.getItem("challengeScore");
+      return savedScore ? parseInt(savedScore, 10) : 0;
+    }
+    return 0;
+  });
+  const [slideTransition, setSlideTransition] = useState<string>("fade");
 
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
@@ -358,6 +380,15 @@ export default function HeroSection() {
           console.error("Failed to parse favorites", e);
         }
       }
+
+      const savedPlaylist = localStorage.getItem("playlist");
+      if (savedPlaylist) {
+        try {
+          setPlaylist(JSON.parse(savedPlaylist));
+        } catch (e) {
+          console.error("Failed to parse playlist", e);
+        }
+      }
     }
   }, []);
 
@@ -457,10 +488,41 @@ export default function HeroSection() {
     });
   };
 
+  const toggleFavorite = useCallback(
+    (songTitle: string) => {
+      setFavorites((prev) => {
+        const newFavorites = prev.includes(songTitle)
+          ? prev.filter((title) => title !== songTitle)
+          : [...prev, songTitle];
+        if (typeof window !== "undefined") {
+          localStorage.setItem("favorites", JSON.stringify(newFavorites));
+        }
+        return newFavorites;
+      });
+    },
+    []
+  );
+
+  const togglePlaylist = useCallback(
+    (songTitle: string) => {
+      setPlaylist((prev) => {
+        const newPlaylist = prev.includes(songTitle)
+          ? prev.filter((title) => title !== songTitle)
+          : [...prev, songTitle];
+        if (typeof window !== "undefined") {
+          localStorage.setItem("playlist", JSON.stringify(newPlaylist));
+        }
+        return newPlaylist;
+      });
+    },
+    []
+  );
+
   const handleItemSelect = (item: Song) => {
     setSelectedItem(item);
     setCurrentSlide(0);
     setShowFullScreen(true);
+    setShowChallenge(false);
 
     if (searchQuery) {
       addToRecentSearches(searchQuery);
@@ -605,20 +667,56 @@ export default function HeroSection() {
     }
   };
 
-  const toggleFavorite = useCallback(
-    (songTitle: string) => {
-      setFavorites((prev) => {
-        const newFavorites = prev.includes(songTitle)
-          ? prev.filter((title) => title !== songTitle)
-          : [...prev, songTitle];
-        if (typeof window !== "undefined") {
-          localStorage.setItem("favorites", JSON.stringify(newFavorites));
-        }
-        return newFavorites;
-      });
-    },
-    []
-  );
+  const generateChallenge = useCallback(() => {
+    if (songs.length === 0) return;
+
+    const randomSong = songs[Math.floor(Math.random() * songs.length)];
+    const allVerses = randomSong.verses.flat();
+    if (randomSong.chorus) {
+      allVerses.push(...randomSong.chorus);
+    }
+    if (allVerses.length === 0) return;
+
+    const randomVerse = allVerses[Math.floor(Math.random() * allVerses.length)];
+    const words = randomVerse.split(" ");
+    const question = words.slice(0, Math.min(3, words.length)).join(" ") + "...";
+
+    const options = [randomSong.title];
+    while (options.length < 4) {
+      const randomOption = songs[Math.floor(Math.random() * songs.length)].title;
+      if (!options.includes(randomOption)) {
+        options.push(randomOption);
+      }
+    }
+    options.sort(() => Math.random() - 0.5);
+
+    setChallenge({
+      question,
+      correctAnswer: randomSong.title,
+      options,
+    });
+  }, [songs]);
+
+  const handleChallengeAnswer = (answer: string) => {
+    if (!challenge) return;
+
+    const isCorrect = answer === challenge.correctAnswer;
+    const newScore = isCorrect ? score + 10 : score - 5;
+    setScore(newScore);
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("challengeScore", newScore.toString());
+    }
+
+    alert(isCorrect ? "إجابة صحيحة! +10 نقاط" : "إجابة خاطئة. -5 نقاط");
+    generateChallenge();
+  };
+
+  useEffect(() => {
+    if (showChallenge && !challenge) {
+      generateChallenge();
+    }
+  }, [showChallenge, challenge, generateChallenge]);
 
   useEffect(() => {
     if (showFullScreen && autoAdvance && selectedItem) {
@@ -686,8 +784,33 @@ export default function HeroSection() {
   const saveSettings = () => {
     if (typeof window !== "undefined") {
       localStorage.setItem("globalFontSize", globalFontSize.toString());
+      localStorage.setItem("slideTransition", slideTransition);
     }
     setShowSettings(false);
+  };
+
+  const getTransitionVariants = () => {
+    switch (slideTransition) {
+      case "fade":
+        return {
+          initial: { opacity: 0 },
+          animate: { opacity: 1 },
+          exit: { opacity: 0 },
+        };
+      case "slide":
+        return {
+          initial: { x: 100, opacity: 0 },
+          animate: { x: 0, opacity: 1 },
+          exit: { x: -100, opacity: 0 },
+        };
+      case "none":
+      default:
+        return {
+          initial: { opacity: 1 },
+          animate: { opacity: 1 },
+          exit: { opacity: 1 },
+        };
+    }
   };
 
   return (
@@ -720,6 +843,7 @@ export default function HeroSection() {
                   setSearchQuery(e.target.value);
                   if (e.target.value.trim()) {
                     setShowRecentSearches(false);
+                    setShowChallenge(false);
                   }
                 }}
                 onFocus={() => {
@@ -821,18 +945,43 @@ export default function HeroSection() {
                           >
                             {item.title}
                           </button>
-                          <button
-                            onClick={() => toggleFavorite(item.title)}
-                            className="ml-2 p-2 rounded-full hover:bg-muted"
-                          >
-                            <Heart
-                              className={`h-5 w-5 ${
-                                favorites.includes(item.title)
-                                  ? "fill-red-500 text-red-500"
-                                  : "text-muted-foreground"
-                              }`}
-                            />
-                          </button>
+                          <div className="flex gap-2">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => togglePlaylist(item.title)}
+                                    className="p-2 rounded-full hover:bg-muted"
+                                  >
+                                    <PlusCircle
+                                      className={`h-5 w-5 ${
+                                        playlist.includes(item.title)
+                                          ? "text-blue-500"
+                                          : "text-muted-foreground"
+                                      }`}
+                                    />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {playlist.includes(item.title)
+                                    ? "إزالة من قائمة التشغيل"
+                                    : "إضافة إلى قائمة التشغيل"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <button
+                              onClick={() => toggleFavorite(item.title)}
+                              className="p-2 rounded-full hover:bg-muted"
+                            >
+                              <Heart
+                                className={`h-5 w-5 ${
+                                  favorites.includes(item.title)
+                                    ? "fill-red-500 text-red-500"
+                                    : "text-muted-foreground"
+                                }`}
+                              />
+                            </button>
+                          </div>
                         </div>
                         {matchingVerses.length > 0 && (
                           <div className="mt-2 text-sm text-muted-foreground">
@@ -850,7 +999,7 @@ export default function HeroSection() {
             )}
           </AnimatePresence>
 
-          {favorites.length > 0 && !searchQuery.trim() && !showRecentSearches && (
+          {favorites.length > 0 && !searchQuery.trim() && !showRecentSearches && !showChallenge && (
             <div className="w-full max-w-3xl mx-auto mt-6 sm:mt-8">
               <h2 className="text-lg sm:text-xl font-bold mb-4 text-foreground">
                 المفضلة
@@ -868,26 +1017,135 @@ export default function HeroSection() {
                       <CardContent className="p-4 flex justify-between items-center">
                         <button
                           className="flex-1 text-right font-semibold"
-                          onClick={() => {
-                            const songToSelect = songs.find(
-                              (s) => s.title === title
-                            );
-                            if (songToSelect) handleItemSelect(songToSelect);
-                          }}
+                          onClick={() => handleItemSelect(song)}
                         >
                           {title}
                         </button>
-                        <button
-                          onClick={() => toggleFavorite(title)}
-                          className="ml-2 p-2 rounded-full hover:bg-muted"
-                        >
-                          <Heart className="h-5 w-5 fill-red-500 text-red-500" />
-                        </button>
+                        <div className="flex gap-2">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => togglePlaylist(song.title)}
+                                  className="p-2 rounded-full hover:bg-muted"
+                                >
+                                  <PlusCircle
+                                    className={`h-5 w-5 ${
+                                      playlist.includes(song.title)
+                                        ? "text-blue-500"
+                                        : "text-muted-foreground"
+                                    }`}
+                                  />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {playlist.includes(song.title)
+                                  ? "إزالة من قائمة التشغيل"
+                                  : "إضافة إلى قائمة التشغيل"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <button
+                            onClick={() => toggleFavorite(title)}
+                            className="p-2 rounded-full hover:bg-muted"
+                          >
+                            <Heart className="h-5 w-5 fill-red-500 text-red-500" />
+                          </button>
+                        </div>
                       </CardContent>
                     </Card>
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {playlist.length > 0 && !searchQuery.trim() && !showRecentSearches && !showChallenge && (
+            <div className="w-full max-w-3xl mx-auto mt-6 sm:mt-8">
+              <h2 className="text-lg sm:text-xl font-bold mb-4 text-foreground">
+                قائمة التشغيل
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {playlist.map((title, index) => {
+                  const song = songs.find((s) => s.title === title);
+                  if (!song) return null;
+
+                  return (
+                    <Card
+                      key={index}
+                      className="overflow-hidden hover:shadow-md transition-all"
+                    >
+                      <CardContent className="p-4 flex justify-between items-center">
+                        <button
+                          className="flex-1 text-right font-semibold"
+                          onClick={() => handleItemSelect(song)}
+                        >
+                          {title}
+                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => togglePlaylist(title)}
+                            className="p-2 rounded-full hover:bg-muted"
+                          >
+                            <X className="h-5 w-5 text-muted-foreground" />
+                          </button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {!searchQuery.trim() && !showRecentSearches && (
+            <div className="w-full max-w-3xl mx-auto mt-6 sm:mt-8">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">
+                  تحدي الترانيم
+                </h2>
+                <Button
+                  onClick={() => {
+                    setShowChallenge(true);
+                    generateChallenge();
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  ابدأ التحدي
+                </Button>
+              </div>
+              {showChallenge && challenge && (
+                <Card className="p-4">
+                  <CardContent>
+                    <div className="text-center mb-4">
+                      <h3 className="text-lg font-bold">النقاط: {score}</h3>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        ما اسم الترنيمة التي تحتوي على هذا المقطع؟
+                      </p>
+                      <p className="text-base font-semibold mt-2">
+                        {challenge.question}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {challenge.options.map((option, index) => (
+                        <Button
+                          key={index}
+                          onClick={() => handleChallengeAnswer(option)}
+                          className="w-full bg-gray-700 hover:bg-gray-600 text-white"
+                        >
+                          {option}
+                        </Button>
+                      ))}
+                    </div>
+                    <Button
+                      onClick={generateChallenge}
+                      className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      تحدي جديد
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
         </div>
@@ -936,9 +1194,8 @@ export default function HeroSection() {
 
             <motion.div
               key={currentSlide}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              {...getTransitionVariants()}
+              transition={{ duration: 0.3, ease: "easeOut" }}
               className="relative w-full h-full flex items-center justify-center z-20"
             >
               {selectedItem ? (
@@ -1275,6 +1532,31 @@ export default function HeroSection() {
                             </div>
                           </div>
 
+                          <div className="space-y-2">
+                            <Label className="text-xs xs:text-sm text-white font-semibold">
+                              تأثير الانتقال بين الشرائح
+                            </Label>
+                            <Select
+                              value={slideTransition}
+                              onValueChange={setSlideTransition}
+                            >
+                              <SelectTrigger className="w-full bg-gray-800 text-white border-gray-500">
+                                <SelectValue placeholder="اختر تأثير الانتقال" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-gray-800 text-white border-gray-500">
+                                {transitionOptions.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                    className="hover:bg-gray-700"
+                                  >
+                                    {option.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
                           <div className="flex items-center justify-between">
                             <Label
                               htmlFor="auto-advance"
@@ -1432,6 +1714,35 @@ export default function HeroSection() {
                       {selectedItem && favorites.includes(selectedItem.title)
                         ? "إزالة من المفضلة"
                         : "إضافة إلى المفضلة"}
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() =>
+                          selectedItem && togglePlaylist(selectedItem.title)
+                        }
+                        className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200"
+                        aria-label={
+                          selectedItem && playlist.includes(selectedItem.title)
+                            ? "إزالة من قائمة التشغيل"
+                            : "إضافة إلى قائمة التشغيل"
+                        }
+                        disabled={!selectedItem}
+                      >
+                        <PlusCircle
+                          className={`h-6 w-6 ${
+                            selectedItem && playlist.includes(selectedItem.title)
+                              ? "text-blue-500"
+                              : "text-white"
+                          }`}
+                        />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {selectedItem && playlist.includes(selectedItem.title)
+                        ? "إزالة من قائمة التشغيل"
+                        : "إضافة إلى قائمة التشغيل"}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
