@@ -822,11 +822,14 @@ export default function محرر_العروض_التقديمية() {
     try {
       const pptx = new pptxgen()
       pptx.layout = أبعاد_الشريحة.width > أبعاد_الشريحة.height ? "LAYOUT_WIDE" : "LAYOUT_STANDARD"
+      
+      // التعديل هنا: استخدام slideWidth و slideHeight بدلًا من width و height
       pptx.defineSlideMaster({
         title: "MASTER_SLIDE",
-        width: أبعاد_الشريحة.width,
-        height: أبعاد_الشريحة.height,
+        slideWidth: أبعاد_الشريحة.width,
+        slideHeight: أبعاد_الشريحة.height,
       })
+
 
       شرائح.forEach((شريحة) => {
         const pptSlide = pptx.addSlide({ masterName: "MASTER_SLIDE" })
