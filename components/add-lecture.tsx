@@ -820,15 +820,14 @@ export default function محرر_العروض_التقديمية() {
   // Modify the حفظ_كملف_باوربوينت function to properly handle text colors
   const حفظ_كملف_باوربوينت = () => {
     try {
-      const pptx = new pptxgen()
-      pptx.layout = أبعاد_الشريحة.width > أبعاد_الشريحة.height ? "LAYOUT_WIDE" : "LAYOUT_STANDARD"
+      const pptx = new pptxgen();
       
-      // التعديل هنا: استخدام slideWidth و slideHeight بدلًا من width و height
+      // تحديد أبعاد الشريحة بالبوصة (القيم النموذجية لـ 16:9)
       pptx.defineSlideMaster({
         title: "MASTER_SLIDE",
-        slideWidth: أبعاد_الشريحة.width,
-        slideHeight: أبعاد_الشريحة.height,
-      })
+        width: أبعاد_الشريحة.width,  // استخدام width مباشرة (بالبوصة)
+        height: أبعاد_الشريحة.height, // استخدام height مباشرة (بالبوصة)
+      });
 
 
       شرائح.forEach((شريحة) => {
