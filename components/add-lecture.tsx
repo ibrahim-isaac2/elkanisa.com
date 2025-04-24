@@ -821,12 +821,15 @@ export default function محرر_العروض_التقديمية() {
   const حفظ_كملف_باوربوينت = () => {
     try {
       const pptx = new pptxgen()
-      pptx.layout = أبعاد_الشريحة.width > أبعاد_الشريحة.height ? "LAYOUT_WIDE" : "LAYOUT_STANDARD"
-      pptx.defineSlideMaster({
-        title: "MASTER_SLIDE",
+      pptx.defineLayout({
+        name: "CUSTOM_LAYOUT",
         width: أبعاد_الشريحة.width,
         height: أبعاد_الشريحة.height,
-      })
+      });
+      pptx.layout = "CUSTOM_LAYOUT";
+      pptx.defineSlideMaster({
+        title: "MASTER_SLIDE",
+      });
 
       شرائح.forEach((شريحة) => {
         const pptSlide = pptx.addSlide({ masterName: "MASTER_SLIDE" })
