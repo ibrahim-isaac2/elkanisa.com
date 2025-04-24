@@ -945,8 +945,8 @@ export default function محرر_العروض_التقديمية() {
 
         // إضافة انتقال الشريحة
         if (انتقال_الشريحة !== "none") {
-          pptSlide.slideTransition = { type: انتقال_الشريحة }
-        }
+          pptSlide.transition = { type: انتقال_الشريحة };
+                }
       })
 
       // تعيين خصائص المستند للحفاظ على التنسيق
