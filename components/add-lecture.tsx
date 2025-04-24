@@ -909,8 +909,8 @@ export default function محرر_العروض_التقديمية() {
             color: تحويل_اللون_إلى_هيكس(شريحة.watermarkColor),
             align: "right",
             valign: "top",
-            opacity: 0.5,
-          })
+            transparency: 50, // 0.5 * 100 = 50
+                      })
         }
 
         // إضافة الصور
