@@ -820,15 +820,13 @@ export default function محرر_العروض_التقديمية() {
   // Modify the حفظ_كملف_باوربوينت function to properly handle text colors
   const حفظ_كملف_باوربوينت = () => {
     try {
-      const pptx = new pptxgen();
-      
-      // تحديد أبعاد الشريحة بالبوصة (القيم النموذجية لـ 16:9)
+      const pptx = new pptxgen()
+      pptx.layout = أبعاد_الشريحة.width > أبعاد_الشريحة.height ? "LAYOUT_WIDE" : "LAYOUT_STANDARD"
       pptx.defineSlideMaster({
         title: "MASTER_SLIDE",
-        width: أبعاد_الشريحة.width,  // استخدام width مباشرة (بالبوصة)
-        height: أبعاد_الشريحة.height, // استخدام height مباشرة (بالبوصة)
-      });
-
+        width: أبعاد_الشريحة.width,
+        height: أبعاد_الشريحة.height,
+      })
 
       شرائح.forEach((شريحة) => {
         const pptSlide = pptx.addSlide({ masterName: "MASTER_SLIDE" })
