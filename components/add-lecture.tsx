@@ -879,8 +879,10 @@ export default function محرر_العروض_التقديمية() {
         // إضافة الخلفية
         if (شريحة.backgroundColor === "custom" && شريحة.backgroundImage) {
           if (شريحة.backgroundImage.startsWith("data:image")) {
-            pptSlide.background = { data: شريحة.backgroundImage, opacity: شريحة.backgroundOpacity }
-          } else {
+            pptSlide.background = { 
+              data: شريحة.backgroundImage, 
+              transparency: شريحة.backgroundOpacity * 100 
+            }          } else {
             // بالنسبة لخلفيات التدرج
             pptSlide.background = { color: "000000" }
             pptSlide.addShape(pptx.ShapeType.rectangle, {
