@@ -939,8 +939,8 @@ export default function محرر_العروض_التقديمية() {
             fontFace: txt.fontFamily,
             bold: txt.isBold,
             italic: txt.isItalic,
-            underline: txt.isUnderline,
-          })
+            underline: txt.isUnderline ? { style: "sng" } : undefined,
+                    })
         })
 
         // إضافة انتقال الشريحة
