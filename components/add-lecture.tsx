@@ -871,8 +871,8 @@ export default function محرر_العروض_التقديمية() {
           fontFace: شريحة.fontFamily,
           bold: شريحة.isBold,
           italic: شريحة.isItalic,
-          underline: شريحة.isUnderline ? { style: "solid" } : undefined,
-                    lineSpacing: شريحة.lineSpacing * 24,
+          underline: شريحة.isUnderline ? { style: "sng" } : undefined,
+                              lineSpacing: شريحة.lineSpacing * 24,
           shadow: شريحة.textShadow ? { type: "outer", color: "000000", blur: 3, offset: 3, angle: 45 } : undefined,
         })
 
