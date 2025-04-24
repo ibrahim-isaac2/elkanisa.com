@@ -885,8 +885,8 @@ export default function محرر_العروض_التقديمية() {
             }          } else {
             // بالنسبة لخلفيات التدرج
             pptSlide.background = { color: "000000" }
-            pptSlide.addShape(pptx.ShapeType.rectangle, {
-              x: 0,
+            pptSlide.addShape(pptxgen.ShapeType.rect, {
+                            x: 0,
               y: 0,
               w: "100%",
               h: "100%",
