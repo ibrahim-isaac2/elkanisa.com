@@ -1,3 +1,5 @@
-interface Window {
+declare global {
+  interface Window {
     MSStream?: any;
   }
+}
