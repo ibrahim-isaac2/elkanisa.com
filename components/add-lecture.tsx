@@ -1833,12 +1833,14 @@ export default function محرر_العروض_التقديمية() {
                               رفع صورة خلفية
                             </Button>
                             <input
-                              type="file"
-                              ref={(el) => (مراجع_مدخلات_الملفات.current[الشريحة_الحالية] = el)}
-                              accept="image/*"
-                              onChange={(e) => معالجة_رفع_الخلفية(الشريحة_الحالية, e)}
-                              className="hidden"
-                            />
+  type="file"
+  ref={(el) => {
+    مراجع_مدخلات_الملفات.current[الشريحة_الحالية] = el;
+  }}
+  accept="image/*"
+  onChange={(e) => معالجة_رفع_الخلفية(الشريحة_الحالية, e)}
+  className="hidden"
+/>
                           </div>
 
                           {شرائح[الشريحة_الحالية]?.backgroundColor === "custom" &&
