@@ -683,26 +683,29 @@ export default function محرر_العروض_التقديمية() {
     document.addEventListener("touchend", handleEnd)
   }
 
-  const معالجة_تغيير_حجم_العنصر = (id: string, width: number, height: number) => {
-    const شرائح_جديدة = [...شرائح]
-    const بيانات_الشريحة_الحالية = شرائح_جديدة[الشريحة_الحالية]
-
+  const معالجة_تغيير_حجم_العنصر = (id: string, width: number, height?: number) => {
+    const شرائح_جديدة = [...شرائح];
+    const بيانات_الشريحة_الحالية = شرائح_جديدة[الشريحة_الحالية];
+  
     // التحقق مما إذا كان صورة
-    const مؤشر_الصورة = بيانات_الشريحة_الحالية.images.findIndex((img) => img.id === id)
+    const مؤشر_الصورة = بيانات_الشريحة_الحالية.images.findIndex((img) => img.id === id);
     if (مؤشر_الصورة !== -1) {
-      بيانات_الشريحة_الحالية.images[مؤشر_الصورة].width = width
-      بيانات_الشريحة_الحالية.images[مؤشر_الصورة].height = height
-      تعيين_الشرائح(شرائح_جديدة)
-      return
+      بيانات_الشريحة_الحالية.images[مؤشر_الصورة].width = width;
+      if (height !== undefined) {
+        بيانات_الشريحة_الحالية.images[مؤشر_الصورة].height = height;
+      }
+      تعيين_الشرائح(شرائح_جديدة);
+      return;
     }
-
+  
     // التحقق مما إذا كان عنصر نصي
-    const مؤشر_النص = بيانات_الشريحة_الحالية.textElements.findIndex((txt) => txt.id === id)
+    const مؤشر_النص = بيانات_الشريحة_الحالية.textElements.findIndex((txt) => txt.id === id);
     if (مؤشر_النص !== -1) {
-      بيانات_الشريحة_الحالية.textElements[مؤشر_النص].width = width
-      تعيين_الشرائح(شرائح_جديدة)
+      بيانات_الشريحة_الحالية.textElements[مؤشر_النص].width = width;
+      // إذا كنت تريد التحكم في الارتفاع لاحقًا، يمكنك إضافة height هنا بعد تحديث نوع عنصر_نص
+      تعيين_الشرائح(شرائح_جديدة);
     }
-  }
+  };
 
   const معالجة_تدوير_العنصر = (id: string, rotation: number) => {
     const شرائح_جديدة = [...شرائح]
