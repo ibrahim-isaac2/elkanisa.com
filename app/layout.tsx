@@ -5,7 +5,7 @@ import { ThemeProvider } from "./ThemeContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// تصدير metadata مع كلمات مفتاحية شاملة
+// تصدير metadata مع كلمات مفتاح continuaciónية شاملة
 export const metadata: Metadata = {
   title: "الكنيسة",
   description: "استمتع بترانيم كنسية، الكتاب المقدس النصي والمسموع، آية اليوم، خدمات كنسية، وتطبيق ديني بدون إنترنت مع الكنيسة. اكتشف ترانيم كلمات وألحان، تسجيل حضور، وعروض تقديمية دينية.",
@@ -49,7 +49,11 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="manifest" href="/manifest.json" />
+        {/* تحسينات الـ Favicon */}
         <link rel="shortcut icon" type="image/png" href="/icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#000000" />
         {/* Open Graph Tags */}
         <meta property="og:title" content="الكنيسة - ترانيم كنسية والكتاب المقدس بدون إنترنت" />
@@ -85,6 +89,22 @@ export default function RootLayout({
                 "target": "https://elkanisa.com/search?q={search_term_string}",
                 "query-input": "required name=search_term_string",
               },
+            }),
+          }}
+        />
+        {/* Schema Markup للوجو */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "الكنيسة",
+              "url": "https://elkanisa.com",
+              "logo": "https://elkanisa.com/icon.png",
+              "sameAs": [
+                "https://x.com/elkanisa" // أضف روابط السوشيال ميديا لو عندك
+              ]
             }),
           }}
         />
