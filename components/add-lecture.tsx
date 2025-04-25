@@ -832,14 +832,12 @@ export default function محرر_العروض_التقديمية() {
       });
   
       شرائح.forEach((شريحة) => {
-        // إعداد خيارات الشريحة مع الانتقال
         const slideOptions: any = { masterName: "MASTER_SLIDE" };
         if (انتقال_الشريحة !== "none") {
           slideOptions.transition = { type: انتقال_الشريحة };
         }
         const pptSlide = pptx.addSlide(slideOptions);
   
-        // باقي الكود لإضافة النصوص، الصور، الخلفية، إلخ...
         const تحويل_اللون_إلى_هيكس = (color: string) => {
           const الألوان_الأساسية: Record<string, string> = {
             white: "FFFFFF",
@@ -875,7 +873,6 @@ export default function محرر_العروض_التقديمية() {
           shadow: شريحة.textShadow ? { type: "outer", color: "000000", blur: 3, offset: 3, angle: 45 } : undefined,
         });
   
-        // إضافة الخلفية
         if (شريحة.backgroundColor === "custom" && شريحة.backgroundImage) {
           if (شريحة.backgroundImage.startsWith("data:image")) {
             pptSlide.background = { 
@@ -897,7 +894,6 @@ export default function محرر_العروض_التقديمية() {
           pptSlide.background = { color: تحويل_اللون_إلى_هيكس(شريحة.backgroundColor) };
         }
   
-        // إضافة العلامة المائية
         if (شريحة.watermark) {
           pptSlide.addText(شريحة.watermark, {
             x: "80%",
@@ -912,7 +908,6 @@ export default function محرر_العروض_التقديمية() {
           });
         }
   
-        // إضافة الصور
         شريحة.images.forEach((img) => {
           if (img.src.startsWith("data:image")) {
             pptSlide.addImage({
@@ -926,7 +921,6 @@ export default function محرر_العروض_التقديمية() {
           }
         });
   
-        // إضافة عناصر النص
         شريحة.textElements.forEach((txt) => {
           pptSlide.addText(txt.content, {
             x: txt.x / 100,
@@ -953,7 +947,8 @@ export default function محرر_العروض_التقديمية() {
         bodyFontFace: عائلات_الخطوط[0].value,
       };
   
-      pptx.writeFile(`${عنوان_العرض || "presentation"}.pptx`);
+      pptx.writeFile({ fileName: `${عنوان_العرض || "presentation"}.pptx` });
+  
       toast({
         title: "تم الحفظ بنجاح",
         description: `تم حفظ العرض التقديمي كملف باوربوينت "${عنوان_العرض || "presentation"}.pptx"`,
