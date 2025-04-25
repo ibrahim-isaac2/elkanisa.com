@@ -60,7 +60,7 @@ export default function InstallButton() {
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-      let message = "من فضلك اضغط علي الثلاث نقاط الموجودين في المتصفح واضغط علي اضافة الي الشاشة لتتمكن من التثبيت بنجاح ";
+      let message = "التثبيت غير متاح حاليًا. يرجى التحقق من اتصالك بالإنترنت وحاول مرة أخرى.";
       
       if (!("BeforeInstallPromptEvent" in window)) {
         if (isIOS && isSafari) {
