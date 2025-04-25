@@ -5,7 +5,7 @@ import { ThemeProvider } from "./ThemeContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// تصدير metadata
+// تصدير Metadata لكل الصفحات
 export const metadata: Metadata = {
   title: "الكنيسة",
   description:
@@ -47,17 +47,17 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <head>
-        <meta namearks
-          name="viewport"
-          content="width=device-width, initial-scale=1.0"
-        />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="shortcut icon" type="image/png" href="/icon.png" />
         <meta name="theme-color" content="#000000" />
         {/* Preload critical CSS for faster loading */}
         <link rel="preload" href="/globals.css" as="style" />
         {/* Open Graph Tags */}
-        <meta property="og:title" content="الكنيسة - ترانيم كنسية والكتاب المقدس بدون إنترنت" />
+        <meta
+          property="og:title"
+          content="الكنيسة - ترانيم كنسية والكتاب المقدس بدون إنترنت"
+        />
         <meta
           property="og:description"
           content="اكتشف تطبيق الكنيسة لتحميل ترانيم كنسية بدون إنترنت، قراءة وسماع الكتاب المقدس، آية يومية، خدمات كنسية، وعروض تقديمية بجودة عالية."
@@ -67,7 +67,10 @@ export default function RootLayout({
         <meta property="og:type" content="website" />
         {/* Twitter Cards */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="الكنيسة - ترانيم كنسية والكتاب المقدس بدون إنترنت" />
+        <meta
+          name="twitter:title"
+          content="الكنيسة - ترانيم كنسية والكتاب المقدس بدون إنترنت"
+        />
         <meta
           name="twitter:description"
           content="اكتشف تطبيق الكنيسة لترانيم كنسية، الكتاب المقدس النصي والمسموع، آية يومية، وخدمات بدون إنترنت."
@@ -116,13 +119,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-// ملاحظة: لتحسين SEO أكتر، يمكنك تخصيص Metadata لكل صفحة باستخدام generateMetadata في ملفات الصفحات.
-// مثال لصفحة /hymns:
-// export async function generateMetadata(): Promise<Metadata> {
-//   return {
-//     title: "ترانيم كنسية - الكنيسة",
-//     description: "استمتع بتحميل ترانيم كنسية بدون إنترنت مع كلمات وموسيقى بجودة عالية.",
-//     keywords: ["ترانيم كنسية", "ترانيم بدون إنترنت", "ترانيم مسيحية"],
-//   };
-// }
