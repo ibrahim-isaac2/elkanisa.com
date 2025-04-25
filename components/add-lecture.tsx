@@ -1833,14 +1833,12 @@ export default function محرر_العروض_التقديمية() {
                               رفع صورة خلفية
                             </Button>
                             <input
-  type="file"
-  ref={(el) => {
-    مراجع_مدخلات_الملفات.current[الشريحة_الحالية] = el;
-  }}
-  accept="image/*"
-  onChange={(e) => معالجة_رفع_الخلفية(الشريحة_الحالية, e)}
-  className="hidden"
-/>
+                              type="file"
+                              ref={(el) => (مراجع_مدخلات_الملفات.current[الشريحة_الحالية] = el)}
+                              accept="image/*"
+                              onChange={(e) => معالجة_رفع_الخلفية(الشريحة_الحالية, e)}
+                              className="hidden"
+                            />
                           </div>
 
                           {شرائح[الشريحة_الحالية]?.backgroundColor === "custom" &&
@@ -2582,8 +2580,7 @@ export default function محرر_العروض_التقديمية() {
                                     const handleMouseMove = (moveEvent: MouseEvent) => {
                                       const deltaX = moveEvent.clientX - startX
                                       const newWidth = Math.max(50, startWidth + deltaX)
-                                      معالجة_تغيير_حجم_العنصر(txt.id, newWidth, txt.height)
-                                    }
+                                      معالجة_تغيير_حجم_العنصر(txt.id, newWidth, undefined)                                    }
 
                                     const handleMouseUp = () => {
                                       document.removeEventListener("mousemove", handleMouseMove)
@@ -2604,8 +2601,7 @@ export default function محرر_العروض_التقديمية() {
                                       const touch = moveEvent.touches[0]
                                       const deltaX = touch.clientX - startX
                                       const newWidth = Math.max(50, startWidth + deltaX)
-                                      معالجة_تغيير_حجم_العنصر(txt.id, newWidth, txt.height)
-                                    }
+                                      معالجة_تغيير_حجم_العنصر(txt.id, newWidth, undefined)                                    }
 
                                     const handleTouchEnd = () => {
                                       document.removeEventListener("touchmove", handleTouchMove)
