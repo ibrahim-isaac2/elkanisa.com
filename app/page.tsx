@@ -1,4 +1,5 @@
-import { Metadata } from "next";
+'use client';
+
 import Header from "@/components/header";
 import HeroSection from "@/components/hero-section";
 import AddHymn from "@/components/add-hymn";
@@ -12,38 +13,43 @@ import TextBible from "@/components/TextBible";
 import PowerPointSection from "@/components/PowerPointSection";
 import DailyVerse from "@/components/DailyVerse";
 import ChatBot from "@/components/ChatBot";
-import OfflineHandler from "@/components/OfflineHandler";
-
-// إضافة Metadata مخصصة للصفحة الرئيسية
-export async function generateMetadata(): Promise<Metadata> {
-  return {
-    title: "الكنيسة",
-    description:
-      "اكتشف تطبيق الكنيسة لتحميل ترانيم كنسية بدون إنترنت، قراءة وسماع الكتاب المقدس النصي والمسموع، آية يومية مسيحية، إدارة خدمات كنسية، تسجيل حضور، وعروض تقديمية بجودة عالية.",
-    keywords: [
-      "ترانيم كنسية",
-      "ترانيم بدون إنترنت",
-      "الكتاب المقدس",
-      "الكتاب المقدس مسموع",
-      "آية اليوم",
-      "تطبيق الكنيسة",
-      "خدمات كنسية",
-      "تطبيق ديني عربي",
-      "ترانيم مسيحية",
-      "سجل حضور كنسي",
-      "عروض تقديمية كنسية",
-      "شات بوت ديني",
-      "ترانيم كنسية 2025",
-      "الكتاب المقدس أوفلاين",
-      "ترانيم كنسية مجانية",
-    ],
-  };
-}
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [isOnline, setIsOnline] = useState(true);
+
+  // تسجيل الـ Service Worker ومراقبة حالة الاتصال
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .then((registration) => {
+          console.log("Service Worker registered:", registration.scope);
+        })
+        .catch((error) => {
+          console.error("Service Worker registration failed:", error);
+        });
+    }
+
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
-      <OfflineHandler />
+      {!isOnline && (
+        <div className="bg-yellow-100 text-yellow-800 p-2 text-center">
+          أنت في وضع عدم الاتصال. بعض الوظائف قد تكون محدودة.
+        </div>
+      )}
       <main className="container mx-auto p-6 space-y-8 flex-1">
         <Header />
         <h1 className="text-3xl font-bold text-center">
