@@ -58,9 +58,9 @@ export default function InstallButton() {
       console.log("InstallButton: No deferred prompt available.");
       // Detect browser and device for tailored instructions
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !('MSStream' in window);
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-      let message = "التثبيت غير متاح حاليًا. يرجى التحقق من اتصالك بالإنترنت وحاول مرة أخرى.";
+      let message = "من فضلك اضغط علي الثلاث نقاط الموجودين في المتصفح واضغط علي اضافة الي الشاشة لتتمكن من التثبيت بنجاح ";
       
       if (!("BeforeInstallPromptEvent" in window)) {
         if (isIOS && isSafari) {
