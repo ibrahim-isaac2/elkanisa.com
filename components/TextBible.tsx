@@ -379,7 +379,6 @@ export default function TextBible() {
 
     const results: SearchResult[] = [];
     const query = removeArabicDiacritics(searchQuery.toLowerCase().trim());
-    console.log("الكلمة بعد التنظيف:", query); // تصحيح أخطاء
 
     bibleData.forEach(section => {
       section.books.forEach(book => {
@@ -399,11 +398,8 @@ export default function TextBible() {
       });
     });
 
-    console.log("عدد النتائج:", results.length); // تصحيح أخطاء
-    console.log("النتائج:", results); // تصحيح أخطاء
-
-    setVerseSearchResults(results); // تخزين نتائج البحث
-    setShowSearchDropdown(true); // إظهار القائمة المنسدلة
+    setVerseSearchResults(results);
+    setShowSearchDropdown(true);
   };
 
   const handleVoiceSearch = () => {
@@ -732,7 +728,6 @@ export default function TextBible() {
     let options: string[] = [];
 
     if (randomType === "completeVerse") {
-      // إكمال الآية
       const allVerses = bibleData.flatMap(section =>
         section.books.flatMap(book =>
           book.chapters.flatMap(chapter => chapter.verses)
@@ -740,15 +735,14 @@ export default function TextBible() {
       );
       const randomVerse = allVerses[Math.floor(Math.random() * allVerses.length)];
       const words = randomVerse.text.split(" ");
-      if (words.length < 4) return; // تأكد من أن الآية طويلة بما يكفي
+      if (words.length < 4) return;
 
-      const hiddenIndex = Math.floor(Math.random() * (words.length - 1)) + 1; // تجنب إخفاء الكلمة الأولى
+      const hiddenIndex = Math.floor(Math.random() * (words.length - 1)) + 1;
       const hiddenWord = words[hiddenIndex];
       words[hiddenIndex] = "_____";
       question = words.join(" ");
       correctAnswer = hiddenWord;
 
-      // توليد خيارات خاطئة
       options = [hiddenWord];
       while (options.length < 4) {
         const randomWord = allVerses[Math.floor(Math.random() * allVerses.length)].text.split(" ")[Math.floor(Math.random() * 5)];
@@ -758,7 +752,6 @@ export default function TextBible() {
       }
       options.sort(() => Math.random() - 0.5);
     } else if (randomType === "identifyBook") {
-      // تحديد السفر
       const allBooks = bibleData.flatMap(section => section.books);
       const randomBook = allBooks[Math.floor(Math.random() * allBooks.length)];
       const randomChapter = randomBook.chapters[Math.floor(Math.random() * randomBook.chapters.length)];
@@ -767,7 +760,6 @@ export default function TextBible() {
       question = `في أي سفر تجد هذه الآية: "${verseSnippet}"؟`;
       correctAnswer = randomBook.name;
 
-      // توليد خيارات خاطئة
       options = [randomBook.name];
       while (options.length < 4) {
         const randomBookName = allBooks[Math.floor(Math.random() * allBooks.length)].name;
@@ -959,8 +951,32 @@ export default function TextBible() {
                         <button
                           key={index}
                           onClick={() => {
-                            setChapterText([`${result.book} ${result.chapter}:${result.verse}\n${result.text}`]);
-                            setCurrentSlide(0);
+                            if (!bibleData) return;
+
+                            const selectedBookData = bibleData
+                              .flatMap(section => section.books)
+                              .find(book => book.name === result.book);
+
+                            if (!selectedBookData) {
+                              setError("لم يتم العثور على السفر المحدد.");
+                              return;
+                            }
+
+                            const selectedChapterData = selectedBookData.chapters.find(
+                              chapter => chapter.number === result.chapter
+                            );
+
+                            if (!selectedChapterData) {
+                              setError("لم يتم العثور على الإصحاح المحدد.");
+                              return;
+                            }
+
+                            const verses = selectedChapterData.verses.map(
+                              verse => `${result.book} ${result.chapter}:${verse.number}\n${verse.text}`
+                            );
+
+                            setChapterText(verses);
+                            setCurrentSlide(result.verse - 1);
                             setShowFullScreen(true);
                             document.documentElement.requestFullscreen().catch((err) => {
                               console.warn("Error attempting to enable fullscreen:", err);
