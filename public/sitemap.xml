@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- الصفحة الرئيسية -->
+  <!-- الصفحة الرئيسية: تحتوي على كل الأقسام (ترانيم، الكتاب المقدس، آية اليوم، الشات بوت، إلخ) -->
   <url>
     <loc>https://elkanisa.com/</loc>
     <lastmod>2025-04-25</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <!-- صفحة الترانيم -->
@@ -27,48 +27,5 @@
     <lastmod>2025-04-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>
-  <!-- صفحة إضافة محاضرة -->
-  <url>
-    <loc>https://elkanisa.com/lectures</loc>
-    <lastmod>2025-04-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <!-- صفحة إضافة ترنيمة -->
-  <url>
-    <loc>https://elkanTHEN
-    <loc>https://elkanisa.com/add-hymn</loc>
-    <lastmod>2025-04-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <!-- صفحة سجل الحضور -->
-  <url>
-    <loc>https://elkanisa.com/attendance</loc>
-    <lastmod>2025-04-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <!-- صفحة العروض التقديمية -->
-  <url>
-    <loc>https://elkanisa.com/powerpoint</loc>
-    <lastmod>2025-04-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <!-- صفحة آية اليوم -->
-  <url>
-    <loc>https://elkanisa.com/daily-verse</loc>
-    <lastmod>2025-04-25</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <!-- صفحة الشات بوت -->
-  <url>
-    <loc>https://elkanisa.com/chatbot</loc>
-    <lastmod>2025-04-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
   </url>
 </urlset>
