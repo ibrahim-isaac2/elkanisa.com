@@ -632,9 +632,9 @@ export default function TextBible() {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (!showFullScreen || !chapterText.length) return;
 
-      if (event.key === "ArrowRight") {
+      if (event.key === "ArrowRight" || event.key === "ArrowUp") {
         previousSlide();
-      } else if (event.key === "ArrowLeft") {
+      } else if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
         nextSlide();
       } else if (event.key === "Escape") {
         exitFullScreen();
@@ -866,6 +866,13 @@ export default function TextBible() {
                         if (e.target.value.trim()) {
                           setShowRecentSearches(false);
                           setShowChallenge(false);
+                        }
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          if (searchMode === "verses") {
+                            handleVerseSearch();
+                          }
                         }
                       }}
                       onFocus={() => {
