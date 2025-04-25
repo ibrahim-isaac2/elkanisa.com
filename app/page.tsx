@@ -17,7 +17,7 @@ import OfflineHandler from "@/components/OfflineHandler";
 // إضافة Metadata مخصصة للصفحة الرئيسية
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "الكنيسة - ترانيم كنسية والكتاب المقدس بدون إنترنت",
+    title: "الكنيسة",
     description:
       "اكتشف تطبيق الكنيسة لتحميل ترانيم كنسية بدون إنترنت، قراءة وسماع الكتاب المقدس النصي والمسموع، آية يومية مسيحية، إدارة خدمات كنسية، تسجيل حضور، وعروض تقديمية بجودة عالية.",
     keywords: [
