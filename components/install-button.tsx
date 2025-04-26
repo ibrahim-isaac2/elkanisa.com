@@ -59,7 +59,7 @@ export default function InstallButton() {
       // Detect browser and device for tailored instructions
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      let message = "من فضلك اضغط علي الثلاث نقاط الموجودين في المتصفح واضغط علي اضافة الي الشاشة وانتظر كلمة تثبيت لكي تتمكن من التثبيت بنجاح";
+      let message = "من فضلك انتظر حتى تظهر لك اية الان وبعدين اضغط تثبيت او طريقة اخرى انك بعد ظهور اية الان اضغط علي الثلاث نقاط الموجودين في المتصفح واضغط علي اضافة الي الشاشة وانتظر كلمة تثبيت لكي تتمكن من التثبيت بنجاح";
       
       if (!("BeforeInstallPromptEvent" in window)) {
         if (isIOS && isSafari) {
