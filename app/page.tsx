@@ -5,7 +5,7 @@ import HeroSection from "@/components/hero-section";
 import AddHymn from "@/components/add-hymn";
 import AudioBible from "@/components/audio-bible";
 import InstallButton from "@/components/install-button";
-import AddLecture from "@/components/add-lecture"; // علّقنا الـ import بتاع AddLecture
+import AddLecture from "@/components/add-lecture";
 import AttendanceRecord from "@/components/attendance-record";
 import WordAndMelodyHymns from "@/components/word-and-melody-hymns";
 import Footer from "@/components/footer";
@@ -13,6 +13,7 @@ import TextBible from "@/components/TextBible";
 import PowerPointSection from "@/components/PowerPointSection";
 import DailyVerse from "@/components/DailyVerse";
 import ChatBot from "@/components/ChatBot";
+import CompetitionsSection from "@/components/CompetitionsSection"; // إضافة المكون الجديد
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -64,6 +65,7 @@ export default function Home() {
           <AddHymn />
           <AttendanceRecord />
           <PowerPointSection />
+          <CompetitionsSection /> {/* إضافة القسم الجديد */}
         </div>
       </main>
       <InstallButton />
