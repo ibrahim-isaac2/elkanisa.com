@@ -1008,7 +1008,7 @@ export default function TextBible() {
                       }}
                       placeholder={
                         searchMode === "books"
-                          ? "اكتب اختصار السفر ورقم الاصحاح، مثل 'مت 2' او '1 يو 3'"
+                          ? "    ابحث مثل 'مت 2' او '1 يو 3'"
                           : "ابحث في الآيات..."
                       }
                       className={`w-full pr-4 py-3 sm:py-4 text-sm sm:text-base rounded-xl border-2 ${
