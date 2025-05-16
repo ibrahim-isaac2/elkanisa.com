@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Instagram, Facebook, Mail } from "lucide-react";
+import { Instagram, Facebook, Mail, Book } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "@/app/ThemeContext";
 import { useEffect, useState } from "react";
@@ -60,10 +60,9 @@ export default function Footer() {
                 theme === "dark" ? "text-white" : "text-gray-700"
               } leading-relaxed`}
             >
-            
-            🏠 موقع elkanisa.com هو منصة متكاملة تقدم خدمات موجهة لخدام الكنائس، لتسهيل إدارة الأنشطة والخدمات المختلفة مثل الترانيم، الكتاب المقدس، وسجل الحضور. الموقع يتميز بسهولة الاستخدام وتقديم محتوى احترافي يناسب جميع احتياجات الكنائس.
-            
-                                                                 اهداء الي والدي الله يرحمه ❤️                                   </p>
+              🏠 موقع elkanisa.com هو منصة متكاملة تقدم خدمات موجهة لخدام الكنائس، لتسهيل إدارة الأنشطة والخدمات المختلفة مثل الترانيم، الكتاب المقدس، وسجل الحضور. الموقع يتميز بسهولة الاستخدام وتقديم محتوى احترافي يناسب جميع احتياجات الكنائس.
+              اهداء الي والدي الله يرحمه ❤️
+            </p>
           </div>
 
           <div className="flex flex-col items-center md:items-start order-1 md:order-2 w-full md:w-auto">
@@ -136,6 +135,22 @@ export default function Footer() {
                 >
                   <Mail className="h-5 xs:h-6 w-5 xs:w-6" />
                   <span className="sr-only">Email</span>
+                </Link>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Link
+                  href="https://ibrahim-isaac.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
+                    theme === "dark"
+                      ? "bg-white text-black hover:bg-gray-200"
+                      : "bg-gray-900 text-white hover:bg-gray-700"
+                  }`}
+                >
+                  <Book className="h-5 w-5" />
+                  شوف كتبي من هنا
                 </Link>
               </motion.div>
             </div>
