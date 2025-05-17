@@ -13,7 +13,8 @@ import TextBible from "@/components/TextBible";
 import PowerPointSection from "@/components/PowerPointSection";
 import DailyVerse from "@/components/DailyVerse";
 import ChatBot from "@/components/ChatBot";
-import CompetitionsSection from "@/components/CompetitionsSection"; // إضافة المكون الجديد
+import CompetitionsSection from "@/components/CompetitionsSection";
+import SectionHandler from "@/components/SectionHandler"; // استيراد المكون غير المرئي
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -47,6 +48,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* إضافة المكون غير المرئي */}
+      <SectionHandler />
+      
       {!isOnline && (
         <div className="bg-yellow-100 text-yellow-800 p-2 text-center">
           أنت في وضع عدم الاتصال. بعض الوظائف قد تكون محدودة.
@@ -58,20 +62,53 @@ export default function Home() {
         </h1>
         <HeroSection />
         <div className="space-y-8 max-w-4xl mx-auto">
-          <TextBible />
-          <WordAndMelodyHymns />
-          <AudioBible />
-          <AddLecture />
-          <AddHymn />
-          <AttendanceRecord />
-          <PowerPointSection />
-          <CompetitionsSection /> {/* إضافة القسم الجديد */}
+          {/* إضافة معرفات للأقسام فقط بدون تغيير الشكل */}
+          <div id="text-bible">
+            <TextBible />
+          </div>
+          
+          <div id="word-and-melody-hymns">
+            <WordAndMelodyHymns />
+          </div>
+          
+          <div id="audio-bible">
+            <AudioBible />
+          </div>
+          
+          <div id="add-lecture">
+            <AddLecture />
+          </div>
+          
+          <div id="add-hymn">
+            <AddHymn />
+          </div>
+          
+          <div id="attendance-record">
+            <AttendanceRecord />
+          </div>
+          
+          <div id="powerpoint-section">
+            <PowerPointSection />
+          </div>
+          
+          <div id="competitions-section">
+            <CompetitionsSection />
+          </div>
         </div>
       </main>
       <InstallButton />
-      <Footer />
-      <DailyVerse />
-      <ChatBot />
+      
+      <div id="footer">
+        <Footer />
+      </div>
+      
+      <div id="daily-verse">
+        <DailyVerse />
+      </div>
+      
+      <div id="chat-bot">
+        <ChatBot />
+      </div>
     </div>
   );
 }
