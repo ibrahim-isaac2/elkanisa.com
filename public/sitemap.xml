@@ -92,16 +92,3 @@
     <priority>0.5</priority>
     <xhtml:link rel="alternate" hreflang="ar" href="https://elkanisa.com/#footer"/>
   </url>
-  
-  <!-- روابط السوشيال ميديا -->
-  <url>
-    <loc>https://www.instagram.com/ibrahim._isaac/</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://www.facebook.com/share/1AJSJen6xu/?mibextid=qi2Omg</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.3</priority>
-  </url>
-</urlset>
