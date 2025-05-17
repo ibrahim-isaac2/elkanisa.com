@@ -50,12 +50,12 @@ export default function SectionHandler() {
     };
     
     // استخدام throttle لتحسين الأداء (تنفيذ الدالة مرة كل 200 مللي ثانية)
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
     const throttledScroll = () => {
       if (!timeout) {
         timeout = setTimeout(() => {
           handleScroll();
-          timeout = null;
+          timeout = undefined;
         }, 200);
       }
     };
@@ -95,7 +95,7 @@ export default function SectionHandler() {
     return () => {
       window.removeEventListener('scroll', throttledScroll);
       window.removeEventListener('popstate', handlePopState);
-      clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
     };
   }, [router]);
   
