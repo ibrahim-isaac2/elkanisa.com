@@ -8,13 +8,6 @@ const nextConfig = {
       {
         source: '/:path*',
         destination: '/',
-        has: [
-          {
-            type: 'header',
-            key: 'x-nextjs-data',
-            value: { notPresent: true }
-          }
-        ]
       }
     ];
   }
