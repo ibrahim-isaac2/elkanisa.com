@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+Allow: /#text-bible
+Allow: /#word-and-melody-hymns
+Allow: /#audio-bible
+Allow: /#add-lecture
+Allow: /#add-hymn
+Allow: /#attendance-record
+Allow: /#powerpoint-section
+Allow: /#competitions-section
+Allow: /#daily-verse
+Allow: /#chat-bot
+Allow: /#footer
+
+# روابط خارجية مهمة
+Allow: https://competitions-hema.vercel.app/
+Allow: https://ibrahim-isaac.vercel.app/
+Allow: https://www.instagram.com/ibrahim._isaac/
+Allow: https://www.facebook.com/share/1AJSJen6xu/
+
+Sitemap: https://elkanisa.com/sitemap.xml
