@@ -1,31 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- الصفحة الرئيسية: تحتوي على كل الأقسام (ترانيم، الكتاب المقدس، آية اليوم، الشات بوت، إلخ) -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <!-- الصفحة الرئيسية: تحتوي على كل الأقسام -->
   <url>
     <loc>https://elkanisa.com/</loc>
-    <lastmod>2025-04-25</lastmod>
+    <lastmod>2025-05-17</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
-  <!-- صفحة الترانيم -->
+  
+  <!-- أقسام الموقع الداخلية -->
   <url>
-    <loc>https://elkanisa.com/hymns</loc>
-    <lastmod>2025-04-25</lastmod>
+    <loc>https://elkanisa.com/#text-bible</loc>
+    <lastmod>2025-05-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  <!-- صفحة الكتاب المقدس النصي -->
   <url>
-    <loc>https://elkanisa.com/text-bible</loc>
-    <lastmod>2025-04-25</lastmod>
+    <loc>https://elkanisa.com/#word-and-melody-hymns</loc>
+    <lastmod>2025-05-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  <!-- صفحة الكتاب المقدس المسموع -->
   <url>
-    <loc>https://elkanisa.com/audio-bible</loc>
-    <lastmod>2025-04-25</lastmod>
+    <loc>https://elkanisa.com/#audio-bible</loc>
+    <lastmod>2025-05-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/#add-lecture</loc>
+    <lastmod>2025-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/#add-hymn</loc>
+    <lastmod>2025-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/#attendance-record</loc>
+    <lastmod>2025-05-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/#powerpoint-section</loc>
+    <lastmod>2025-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/#competitions-section</loc>
+    <lastmod>2025-05-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/#daily-verse</loc>
+    <lastmod>2025-05-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/#chat-bot</loc>
+    <lastmod>2025-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/#footer</loc>
+    <lastmod>2025-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- الروابط الخارجية المهمة -->
+  <url>
+    <loc>https://competitions-hema.vercel.app/</loc>
+    <lastmod>2025-05-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://elkanisa.com/#competitions-section"/>
+  </url>
+  <url>
+    <loc>https://ibrahim-isaac.vercel.app/</loc>
+    <lastmod>2025-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://elkanisa.com/#footer"/>
+  </url>
+  
+  <!-- روابط السوشيال ميديا -->
+  <url>
+    <loc>https://www.instagram.com/ibrahim._isaac/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.facebook.com/share/1AJSJen6xu/?mibextid=qi2Omg</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>
