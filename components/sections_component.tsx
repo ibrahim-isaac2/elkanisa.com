@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useTheme } from "@/app/ThemeContext";
 
 // هذا المكون سيكون مخفياً بصرياً ولكنه سيكون موجوداً في الكود لمحركات البحث
-const HiddenSectionsNavigation = () => {
+const SEOSectionsComponent = () => {
   const { theme } = useTheme();
   
   // قائمة الأقسام الرئيسية في الموقع
@@ -20,7 +20,7 @@ const HiddenSectionsNavigation = () => {
     { id: "competitions-section", title: "المسابقات", description: "مسابقات متنوعة خاصة بالبرنامج المشترك" },
     { id: "daily-verse", title: "آية اليوم", description: "آية يومية من الكتاب المقدس للتأمل" },
     { id: "chat-bot", title: "المساعد الآلي", description: "مساعد آلي للإجابة على الأسئلة الروحية" },
-    { id: "hymns", title: "الترانيم", description: "مكتبة كاملة من الترانيم المسيحية" }
+    { id: "songs", title: "الترانيم", description: "مكتبة كاملة من الترانيم المسيحية" }
   ];
 
   return (
@@ -47,7 +47,7 @@ const HiddenSectionsNavigation = () => {
 };
 
 // هذا المكون سيكون مخفياً بصرياً ولكنه سيحتوي على روابط لكل الترانيم
-const HiddenHymnsLinks = () => {
+const HiddenSongsLinks = () => {
   // هذا المكون سيتم ملؤه ديناميكياً بالترانيم من ملف songs.json
   return (
     <div className="sr-only">
@@ -59,11 +59,11 @@ const HiddenHymnsLinks = () => {
 };
 
 // المكون الرئيسي الذي سيتم إضافته إلى الصفحة
-export default function SEOSectionsComponent() {
+export default function SectionsComponent() {
   return (
     <div className="sr-only">
-      <HiddenSectionsNavigation />
-      <HiddenHymnsLinks />
+      <SEOSectionsComponent />
+      <HiddenSongsLinks />
     </div>
   );
 }
