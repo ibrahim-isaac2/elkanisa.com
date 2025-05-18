@@ -1,95 +1,254 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  <!-- الصفحة الرئيسية: تحتوي على كل الأقسام -->
+  <!-- الصفحة الرئيسية -->
   <url>
     <loc>https://elkanisa.com/</loc>
-    <lastmod>2025-05-17</lastmod>
+    <lastmod>2025-05-18</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   
-  <!-- أقسام الموقع الداخلية -->
+  <!-- الأقسام الرئيسية -->
   <url>
     <loc>https://elkanisa.com/#text-bible</loc>
-    <lastmod>2025-05-17</lastmod>
+    <lastmod>2025-05-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://elkanisa.com/#word-and-melody-hymns</loc>
-    <lastmod>2025-05-17</lastmod>
+    <lastmod>2025-05-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://elkanisa.com/#audio-bible</loc>
-    <lastmod>2025-05-17</lastmod>
+    <lastmod>2025-05-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://elkanisa.com/#add-lecture</loc>
-    <lastmod>2025-05-17</lastmod>
+    <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://elkanisa.com/#add-hymn</loc>
-    <lastmod>2025-05-17</lastmod>
+    <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://elkanisa.com/#attendance-record</loc>
-    <lastmod>2025-05-17</lastmod>
+    <lastmod>2025-05-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://elkanisa.com/#powerpoint-section</loc>
-    <lastmod>2025-05-17</lastmod>
+    <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://elkanisa.com/#competitions-section</loc>
-    <lastmod>2025-05-17</lastmod>
+    <lastmod>2025-05-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://elkanisa.com/#daily-verse</loc>
-    <lastmod>2025-05-17</lastmod>
+    <lastmod>2025-05-18</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://elkanisa.com/#chat-bot</loc>
-    <lastmod>2025-05-17</lastmod>
+    <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://elkanisa.com/#footer</loc>
-    <lastmod>2025-05-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
   </url>
   
-  <!-- الروابط الخارجية المهمة -->
+  <!-- صفحة الترانيم الرئيسية -->
   <url>
-    <loc>https://competitions-hema.vercel.app/</loc>
-    <lastmod>2025-05-17</lastmod>
+    <loc>https://elkanisa.com/hymns</loc>
+    <lastmod>2025-05-18</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://elkanisa.com/#competitions-section"/>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- روابط الترانيم الفردية -->
+  <url>
+    <loc>https://elkanisa.com/hymns/إلهي-استجب-لي-أوان-الدعا</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://ibrahim-isaac.vercel.app/</loc>
-    <lastmod>2025-05-17</lastmod>
+    <loc>https://elkanisa.com/hymns/3-16</loc>
+    <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://elkanisa.com/#footer"/>
+    <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/38-سنة-مطروح</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/365-يوم</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/amazing-grace</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/deep-deep-deep</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/deep-deep-oh-deep-down-down</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/feliz-navidad</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/happy-birthday</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/hark-the-herald-angels-sing</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/into-my-heart</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/isa-masih</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/jesus-in-the-morning</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/jingle-bells</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/joy-to-the-world</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/mary-did-you-know</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/o-come-let-us-adore-him</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/sana-bakıyorum-rabbim</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/silent-night</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/twas-in-the-moon-of-wintertime</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/what-child-is-this</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/آبا</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/آبار-مشققة</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/آتي-إليك</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/آتي-إليك-يا-رب-آتي</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/آتي-إليك-يا-فادي-حياتي</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/آتي-اليك-يا-يسوعي</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://elkanisa.com/hymns/آتي-عند-قدميك</loc>
+    <lastmod>2025-05-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- يمكن إضافة المزيد من الترانيم هنا -->
+  
 </urlset>
