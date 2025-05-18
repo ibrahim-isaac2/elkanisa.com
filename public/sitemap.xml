@@ -73,7 +73,7 @@
   
   <!-- صفحة الترانيم الرئيسية -->
   <url>
-    <loc>https://elkanisa.com/hymns</loc>
+    <loc>https://elkanisa.com/songs</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -81,169 +81,169 @@
   
   <!-- روابط الترانيم الفردية -->
   <url>
-    <loc>https://elkanisa.com/hymns/إلهي-استجب-لي-أوان-الدعا</loc>
+    <loc>https://elkanisa.com/songs/إلهي-استجب-لي-أوان-الدعا</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/3-16</loc>
+    <loc>https://elkanisa.com/songs/3-16</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/38-سنة-مطروح</loc>
+    <loc>https://elkanisa.com/songs/38-سنة-مطروح</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/365-يوم</loc>
+    <loc>https://elkanisa.com/songs/365-يوم</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/amazing-grace</loc>
+    <loc>https://elkanisa.com/songs/amazing-grace</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/deep-deep-deep</loc>
+    <loc>https://elkanisa.com/songs/deep-deep-deep</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/deep-deep-oh-deep-down-down</loc>
+    <loc>https://elkanisa.com/songs/deep-deep-oh-deep-down-down</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/feliz-navidad</loc>
+    <loc>https://elkanisa.com/songs/feliz-navidad</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/happy-birthday</loc>
+    <loc>https://elkanisa.com/songs/happy-birthday</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/hark-the-herald-angels-sing</loc>
+    <loc>https://elkanisa.com/songs/hark-the-herald-angels-sing</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/into-my-heart</loc>
+    <loc>https://elkanisa.com/songs/into-my-heart</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/isa-masih</loc>
+    <loc>https://elkanisa.com/songs/isa-masih</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/jesus-in-the-morning</loc>
+    <loc>https://elkanisa.com/songs/jesus-in-the-morning</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/jingle-bells</loc>
+    <loc>https://elkanisa.com/songs/jingle-bells</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/joy-to-the-world</loc>
+    <loc>https://elkanisa.com/songs/joy-to-the-world</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/mary-did-you-know</loc>
+    <loc>https://elkanisa.com/songs/mary-did-you-know</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/o-come-let-us-adore-him</loc>
+    <loc>https://elkanisa.com/songs/o-come-let-us-adore-him</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/sana-bakıyorum-rabbim</loc>
+    <loc>https://elkanisa.com/songs/sana-bakıyorum-rabbim</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/silent-night</loc>
+    <loc>https://elkanisa.com/songs/silent-night</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/twas-in-the-moon-of-wintertime</loc>
+    <loc>https://elkanisa.com/songs/twas-in-the-moon-of-wintertime</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/what-child-is-this</loc>
+    <loc>https://elkanisa.com/songs/what-child-is-this</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/آبا</loc>
+    <loc>https://elkanisa.com/songs/آبا</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/آبار-مشققة</loc>
+    <loc>https://elkanisa.com/songs/آبار-مشققة</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/آتي-إليك</loc>
+    <loc>https://elkanisa.com/songs/آتي-إليك</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/آتي-إليك-يا-رب-آتي</loc>
+    <loc>https://elkanisa.com/songs/آتي-إليك-يا-رب-آتي</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/آتي-إليك-يا-فادي-حياتي</loc>
+    <loc>https://elkanisa.com/songs/آتي-إليك-يا-فادي-حياتي</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/آتي-اليك-يا-يسوعي</loc>
+    <loc>https://elkanisa.com/songs/آتي-اليك-يا-يسوعي</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://elkanisa.com/hymns/آتي-عند-قدميك</loc>
+    <loc>https://elkanisa.com/songs/آتي-عند-قدميك</loc>
     <lastmod>2025-05-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
