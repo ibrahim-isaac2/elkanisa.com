@@ -15,6 +15,7 @@ import DailyVerse from "@/components/DailyVerse";
 import ChatBot from "@/components/ChatBot";
 import CompetitionsSection from "@/components/CompetitionsSection";
 import SectionHandler from "@/components/SectionHandler"; // استيراد المكون غير المرئي
+import SEOWrapper from "@/components/seo_wrapper"; // استيراد مكون SEO الجديد
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -48,6 +49,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* إضافة مكون SEO الجديد (مخفي بصرياً) */}
+      <SEOWrapper />
+      
       {/* إضافة المكون غير المرئي */}
       <SectionHandler />
       
