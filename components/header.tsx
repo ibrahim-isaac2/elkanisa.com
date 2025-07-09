@@ -5,10 +5,6 @@ import { motion } from "framer-motion"
 import { useTheme } from "@/app/ThemeContext"
 
 export default function Header() {
-  const [leftImages, setLeftImages] = useState([])
-  const [rightImages, setRightImages] = useState([])
-  const [currentLeft, setCurrentLeft] = useState(0)
-  const [currentRight, setCurrentRight] = useState(0)
   const [currentTime, setCurrentTime] = useState<Date | null>(null)
   const [isMounted, setIsMounted] = useState(false)
   const { theme, toggleTheme } = useTheme()
@@ -17,19 +13,6 @@ export default function Header() {
   useEffect(() => {
     setIsMounted(true)
     setCurrentTime(new Date())
-  }, [])
-
-  // Fetch images
-  useEffect(() => {
-    fetch("/api/images/left")
-      .then((res) => res.json())
-      .then((data) => setLeftImages(data))
-      .catch((error) => console.error("Error fetching left images:", error))
-
-    fetch("/api/images/right")
-      .then((res) => res.json())
-      .then((data) => setRightImages(data))
-      .catch((error) => console.error("Error fetching right images:", error))
   }, [])
 
   // Update the time every second, but only on the client
@@ -42,33 +25,13 @@ export default function Header() {
     }
   }, [isMounted])
 
-  // Left images animation
-  useEffect(() => {
-    if (leftImages.length > 0) {
-      const leftInterval = setInterval(() => {
-        setCurrentLeft((prev) => (prev + 1) % leftImages.length)
-      }, 5000)
-      return () => clearInterval(leftInterval)
-    }
-  }, [leftImages.length])
-
-  // Right images animation
-  useEffect(() => {
-    if (rightImages.length > 0) {
-      const rightInterval = setInterval(() => {
-        setCurrentRight((prev) => (prev + 1) % rightImages.length)
-      }, 5000)
-      return () => clearInterval(rightInterval)
-    }
-  }, [rightImages.length])
-
   // Format the time only if the component is mounted and currentTime is set
   const formattedTime = isMounted && currentTime
-    ? currentTime.toLocaleTimeString('ar-EG', {
+    ? currentTime.toLocaleTimeString("ar-EG", {
         hour12: true,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
       })
     : "Loading...";
 
@@ -110,7 +73,7 @@ export default function Header() {
         fill="#DC2626"
       />
     </motion.svg>
-  );
+   );
 
   const MusicIcon = () => (
     <motion.svg
@@ -153,7 +116,7 @@ export default function Header() {
       />
       <circle cx="36" cy="44" r="4" fill="#3B82F6" stroke="#2563EB" strokeWidth="2" />
     </motion.svg>
-  );
+   );
 
   return (
     <header className="text-center py-8 bg-[hsl(var(--card))] border-b border-[hsl(var(--border))] relative">
@@ -222,39 +185,18 @@ export default function Header() {
       <div className="container mx-auto max-w-6xl px-4">
         <div className="flex items-center justify-center gap-4">
           <div className="h-20 w-20 flex-shrink-0">
-            {leftImages.length > 0 ? (
-              <img
-                src={leftImages[currentLeft] || "/placeholder.svg"}
-                alt="Left animation"
-                className="h-full w-full object-contain animate-fadeOnce"
-                key={currentLeft}
-              />
-            ) : (
-              <div className="h-full w-full flex items-center justify-center">
-                <MusicIcon />
-              </div>
-            )}
+            <MusicIcon />
           </div>
           <h2 className="text-4xl font-bold text-[hsl(var(--foreground))]">
             {" "}
             صــــديــــق لــــكــــل خــــادم{" "}
           </h2>
           <div className="h-20 w-20 flex-shrink-0">
-            {rightImages.length > 0 ? (
-              <img
-                src={rightImages[currentRight] || "/placeholder.svg"}
-                alt="Right animation"
-                className="h-full w-full object-contain animate-fadeOnce"
-                key={currentRight}
-              />
-            ) : (
-              <div className="h-full w-full flex items-center justify-center">
-                <BookIcon />
-              </div>
-            )}
+            <BookIcon />
           </div>
         </div>
       </div>
     </header>
   )
 }
+
