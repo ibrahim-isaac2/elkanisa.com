@@ -9,12 +9,12 @@ export async function cacheJsonData(key: string, url: string) {
     }
 
     const response = await fetch(url);
-    if (!response.ok) throw new Error('Failed to fetch JSON');
+    if (!response.ok) throw new Error(`Failed to fetch JSON from ${url}`);
     const data = await response.json();
     await set(key, data);
     return data;
   } catch (error) {
-    console.error(Error caching ${key}:, error);
+    console.error(`Error caching ${key}:`, error);
     return null;
   }
 }
@@ -24,15 +24,15 @@ export async function cacheMedia(url: string) {
   try {
     const cache = await caches.open('media-files');
     const response = await fetch(url);
-    if (!response.ok) throw new Error(Failed to fetch ${url});
+    if (!response.ok) throw new Error(`Failed to fetch ${url}`);
     await cache.put(url, response);
-    console.log(${url} cached);
+    console.log(`${url} cached`);
   } catch (error) {
-    console.error(Error caching media ${url}:, error);
+    console.error(`Error caching media ${url}:`, error);
   }
 }
 
-// قائمة أسفار الكتاب المقدس
+// قائمة أسفار الكتاب المقدس (يمكن نقلها إلى ملف منفصل إذا أصبحت كبيرة جدًا)
 const bibleBooks = [
   { name: "تكوين", chapters: 50, audioPrefix: "01_Genesis" },
   { name: "خروج", chapters: 40, audioPrefix: "02_Exodus" },
@@ -115,34 +115,35 @@ export async function cacheAllMedia(audioBaseUrl: string, videoBaseUrl: string) 
           book.name === "مزامير"
             ? chapter.toString().padStart(3, "0")
             : chapter.toString().padStart(2, "0");
-        const audioUrl = ${audioBaseUrl}/${book.audioPrefix}_${paddedChapter}.mp3;
+        const audioUrl = `${audioBaseUrl}/${book.audioPrefix}_${paddedChapter}.mp3`;
         audioUrls.push(audioUrl);
       }
     });
 
     // 2. توليد روابط الفيديوهات (Hymns)
-    const hymnsData = await cacheJsonData('hymns', '/hymns.json');
+    // استخدام مسار مباشر لملف songs.json بدلاً من الاعتماد على API
+    const hymnsData = await cacheJsonData('hymns', '/songs.json'); // استخدام /songs.json مباشرة
     const videoUrls: string[] = hymnsData?.hymns
-      ? hymnsData.hymns.map((hymn: string) => ${videoBaseUrl}/${hymn})
+      ? hymnsData.hymns.map((hymn: string) => `${videoBaseUrl}/${hymn}`)
       : [];
 
     // 3. دمج الروابط
     const allMediaUrls = [...audioUrls, ...videoUrls];
-    console.log(Preparing to cache ${allMediaUrls.length} media files...);
+    console.log(`Preparing to cache ${allMediaUrls.length} media files...`);
 
-    // 4. تخزين الملفات على دفعات صغيرة
-    const chunkSize = 10; // خزن 10 ملفات في المرة
+    // 4. تخزين الملفات على دفعات أكبر
+    const chunkSize = 50; // زيادة حجم الدفعة لتقليل عدد طلبات الشبكة
     for (let i = 0; i < allMediaUrls.length; i += chunkSize) {
       const chunk = allMediaUrls.slice(i, i + chunkSize);
       await Promise.all(
         chunk.map(async (url) => {
           try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error(Failed to fetch ${url});
+            if (!response.ok) throw new Error(`Failed to fetch ${url}`);
             await cache.put(url, response);
-            console.log(${url} cached);
+            console.log(`${url} cached`);
           } catch (error) {
-            console.error(Failed to cache ${url}:, error);
+            console.error(`Failed to cache ${url}:`, error);
           }
         })
       );
