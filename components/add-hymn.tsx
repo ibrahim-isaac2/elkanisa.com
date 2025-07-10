@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
-import { ChevronLeft, ChevronRight, X, Plus, Minus, Settings, Palette, Type, Upload, Download } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ChevronLeft, ChevronRight, X, Plus, Minus, Settings, Palette, Type, Copyright, Upload, Download } from "lucide-react";
+
+type Theme = {
+  name: string;
+  background: string;
+  text: string;
+  isCustom?: boolean;
+  customUrl?: string;
+};
 
 export default function AddHymn() {
   // Hymn data states
@@ -20,21 +30,9 @@ export default function AddHymn() {
   const [currentStep, setCurrentStep] = useState(1);
 
   // Display states
-  const [showPreview, setShowPreview] = useState(false);
+  const [showFullScreen, setShowFullScreen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
-
-  // Display settings
-  const [settings, setSettings] = useState({
-    background: "bg-gradient-to-br from-indigo-900 to-purple-900",
-    textColor: "text-white",
-    fontSize: 48,
-    watermark: "",
-    watermarkColor: "text-white",
-    watermarkSize: 20,
-    autoAdvance: false,
-    autoAdvanceInterval: 10,
-  });
   const [activeTab, setActiveTab] = useState("theme");
 
   // Touch handling states for swipe
@@ -45,9 +43,35 @@ export default function AddHymn() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const autoAdvanceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Themes and colors
-  const themes = [
-    { name: "افتراضي", background: "bg-gradient-to-br from-indigo-900 to-purple-900", text: "text-white" },
+  // Display settings aligned with hero-section.tsx
+  const [currentTheme, setCurrentTheme] = useState<Theme>({
+    name: "افتراضي",
+    background: "bg-black",
+    text: "text-white",
+  });
+  const [customThemes, setCustomThemes] = useState<Theme[]>([]);
+  const [currentTextColor, setCurrentTextColor] = useState({ name: "أبيض", class: "text-white" });
+  const [globalFontSize, setGlobalFontSize] = useState(() => {
+    if (typeof window !== "undefined") {
+      const savedFontSize = localStorage.getItem("globalFontSize");
+      return savedFontSize ? parseInt(savedFontSize, 10) : 72;
+    }
+    return 72;
+  });
+  const [watermark, setWatermark] = useState("");
+  const [watermarkColor, setWatermarkColor] = useState({ name: "أبيض", class: "text-white" });
+  const [watermarkFontSize, setWatermarkFontSize] = useState(20);
+  const [autoAdvance, setAutoAdvance] = useState(false);
+  const [autoAdvanceInterval, setAutoAdvanceInterval] = useState(10);
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const [imagePositionX, setImagePositionX] = useState(50);
+  const [imagePositionY, setImagePositionY] = useState(50);
+  const [imageSize, setImageSize] = useState(50);
+  const [slideTransition, setSlideTransition] = useState<string>("none");
+
+  // Themes and colors aligned with hero-section.tsx
+  const themes: Theme[] = [
+    { name: "افتراضي", background: "bg-black", text: "text-white" },
     { name: "أزرق داكن", background: "bg-gradient-to-br from-blue-800 to-blue-950", text: "text-white" },
     { name: "أخضر داكن", background: "bg-gradient-to-br from-emerald-800 to-green-950", text: "text-white" },
     { name: "أرجواني داكن", background: "bg-gradient-to-br from-purple-800 to-purple-950", text: "text-white" },
@@ -55,6 +79,8 @@ export default function AddHymn() {
     { name: "بني فاتح", background: "bg-gradient-to-br from-amber-50 to-amber-100", text: "text-amber-900" },
     { name: "رمادي داكن", background: "bg-gradient-to-br from-gray-700 to-gray-900", text: "text-white" },
     { name: "أحمر داكن", background: "bg-gradient-to-br from-red-800 to-red-950", text: "text-white" },
+    { name: "برتقالي داكن", background: "bg-gradient-to-br from-orange-800 to-orange-950", text: "text-white" },
+    { name: "أصفر فاتح", background: "bg-gradient-to-br from-yellow-50 to-yellow-200", text: "text-yellow-900" },
   ];
 
   const textColors = [
@@ -66,6 +92,12 @@ export default function AddHymn() {
     { name: "أصفر", class: "text-yellow-500" },
     { name: "برتقالي", class: "text-orange-500" },
     { name: "بنفسجي", class: "text-purple-500" },
+  ];
+
+  const transitionOptions = [
+    { name: "تلاشي", value: "fade" },
+    { name: "انزلاق", value: "slide" },
+    { name: "بدون تأثير", value: "none" },
   ];
 
   // Initialize slides array when slideCount changes
@@ -117,7 +149,7 @@ export default function AddHymn() {
   // Handle keyboard navigation in fullscreen mode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!showPreview) return;
+      if (!showFullScreen) return;
 
       switch (e.key) {
         case "ArrowRight":
@@ -134,11 +166,11 @@ export default function AddHymn() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showPreview, handleNextSlide, handlePrevSlide]);
+  }, [showFullScreen, handleNextSlide, handlePrevSlide]);
 
   // Handle auto-advance
   useEffect(() => {
-    if (showPreview && settings.autoAdvance) {
+    if (showFullScreen && autoAdvance) {
       if (autoAdvanceTimerRef.current) {
         clearInterval(autoAdvanceTimerRef.current);
       }
@@ -152,7 +184,7 @@ export default function AddHymn() {
             autoAdvanceTimerRef.current = null;
           }
         }
-      }, settings.autoAdvanceInterval * 1000);
+      }, autoAdvanceInterval * 1000);
 
       return () => {
         if (autoAdvanceTimerRef.current) {
@@ -161,7 +193,7 @@ export default function AddHymn() {
         }
       };
     }
-  }, [showPreview, settings.autoAdvance, settings.autoAdvanceInterval, currentSlide, slides.length]);
+  }, [showFullScreen, autoAdvance, autoAdvanceInterval, currentSlide, slides.length]);
 
   // Handle form submission to send email
   const handleSubmit = async (e: React.FormEvent) => {
@@ -182,13 +214,11 @@ export default function AddHymn() {
         ${hymnData.slides.map((slide, index) => `Slide ${index + 1}:\n${slide}\n`).join("\n")}
       `;
 
-      // Using a simple mailto link to trigger email client
       const mailtoLink = `mailto:infotojesus@gmail.com?subject=New Hymn Submission: ${encodeURIComponent(hymnData.title)}&body=${encodeURIComponent(emailContent)}`;
 
       window.location.href = mailtoLink;
 
       alert("تم إعداد البريد الإلكتروني! يرجى إرساله من تطبيق البريد الخاص بك.");
-      // Reset form
       setTitle("");
       setSlides([]);
       setSlideCount(1);
@@ -208,7 +238,7 @@ export default function AddHymn() {
 
   // Handle fullscreen exit
   const exitFullScreen = () => {
-    setShowPreview(false);
+    setShowFullScreen(false);
     if (document.fullscreenElement) {
       document.exitFullscreen().catch((err) => {
         console.warn("Error attempting to exit fullscreen:", err);
@@ -240,7 +270,7 @@ export default function AddHymn() {
 
   // Handle entering fullscreen mode
   const enterFullScreen = () => {
-    setShowPreview(true);
+    setShowFullScreen(true);
     setCurrentSlide(0);
 
     document.documentElement.requestFullscreen().catch((err) => {
@@ -248,20 +278,116 @@ export default function AddHymn() {
     });
   };
 
-  // Update a specific setting
-  const updateSetting = (key: string, value: any) => {
-    setSettings((prev) => ({ ...prev, [key]: value }));
+  // Handle upload background
+  const handleUploadBackground = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp", "image/tiff"];
+      if (!validImageTypes.includes(file.type)) {
+        alert("يرجى اختيار ملف صورة (مثل PNG، JPG، GIF، إلخ).");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target?.result as string;
+        const newTheme: Theme = {
+          name: `مخصص ${customThemes.length + 1}`,
+          background: "",
+          text: "text-white",
+          isCustom: true,
+          customUrl: imageUrl,
+        };
+        setCustomThemes((prev) => [...prev, newTheme]);
+        setCurrentTheme(newTheme);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  // Render the settings panel
+  // Handle upload image
+  const handleUploadImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp", "image/tiff"];
+      if (!validImageTypes.includes(file.type)) {
+        alert("يرجى اختيار ملف صورة (مثل PNG، JPG، GIF، إلخ).");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setBackgroundImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Calculate dynamic font size
+  const calculateDynamicFontSize = (text: string) => {
+    const textLength = text.length;
+    const baseFontSize = globalFontSize;
+    const minFontSize = 24;
+    const maxFontSize = 120;
+
+    if (textLength < 50) {
+      return Math.min(baseFontSize * 1.2, maxFontSize);
+    } else if (textLength > 200) {
+      return Math.max(baseFontSize * 0.8, minFontSize);
+    }
+    return baseFontSize;
+  };
+
+  // Save settings
+  const saveSettings = () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("globalFontSize", globalFontSize.toString());
+      localStorage.setItem("slideTransition", slideTransition);
+    }
+    setShowSettings(false);
+  };
+
+  // Transition variants
+  const getTransitionVariants = () => {
+    switch (slideTransition) {
+      case "fade":
+        return {
+          initial: { opacity: 0 },
+          animate: { opacity: 1 },
+          exit: { opacity: 0 },
+          transition: { duration: 0.1, ease: "easeOut" },
+        };
+      case "slide":
+        return {
+          initial: { x: 100, opacity: 0 },
+          animate: { x: 0, opacity: 1 },
+          exit: { x: -100, opacity: 0 },
+          transition: { duration: 0.1, ease: "easeOut" },
+        };
+      case "none":
+      default:
+        return {
+          initial: { opacity: 1 },
+          animate: { opacity: 1 },
+          exit: { opacity: 1 },
+          transition: { duration: 0 },
+        };
+    }
+  };
+
+  // Render settings panel
   const renderSettingsPanel = () => {
     return (
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
         className="fixed inset-0 bg-black/50 flex items-center justify-center z-40"
         onClick={() => setShowSettings(false)}
       >
         <div
-          className="bg-background border border-border rounded-xl shadow-2xl p-4 xs:p-6 w-11/12 sm:w-80 max-h-[80vh] overflow-y-auto"
+          className="bg-black border border-gray-500 rounded-xl shadow-2xl p-4 xs:p-6 w-11/12 sm:w-80 max-h-[80vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
           <Tabs
@@ -270,24 +396,24 @@ export default function AddHymn() {
             onClick={(e) => e.stopPropagation()}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-3 mb-4 bg-background border-border">
+            <TabsList className="grid grid-cols-3 mb-4 bg-black border-gray-500">
               <TabsTrigger
                 value="theme"
-                className="text-xs xs:text-sm text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                className="text-xs xs:text-sm text-white data-[state=active]:bg-blue-600 data-[state=active]:text-white"
                 onClick={(e) => e.stopPropagation()}
               >
                 المظهر
               </TabsTrigger>
               <TabsTrigger
                 value="text"
-                className="text-xs xs:text-sm text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                className="text-xs xs:text-sm text-white data-[state=active]:bg-blue-600 data-[state=active]:text-white"
                 onClick={(e) => e.stopPropagation()}
               >
                 النص
               </TabsTrigger>
               <TabsTrigger
                 value="advanced"
-                className="text-xs xs:text-sm text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                className="text-xs xs:text-sm text-white data-[state=active]:bg-blue-600 data-[state=active]:text-white"
                 onClick={(e) => e.stopPropagation()}
               >
                 متقدم
@@ -296,15 +422,24 @@ export default function AddHymn() {
 
             <TabsContent value="theme" className="space-y-4">
               <div className="flex items-center gap-2 mb-2">
-                <Palette className="h-4 w-4 text-muted-foreground" />
-                <div className="font-bold text-foreground text-sm">الخلفية</div>
+                <Palette className="h-4 w-4 text-gray-400" />
+                <div className="font-bold text-white text-sm">الخلفية</div>
               </div>
               <div className="grid grid-cols-2 gap-3 mb-4">
-                {themes.map((theme) => (
+                {[...themes, ...customThemes].map((theme) => (
                   <button
                     key={theme.name}
-                    onClick={() => updateSetting("background", theme.background)}
-                    className={`p-2 xs:p-3 rounded-lg ${theme.background} ${theme.text} text-xs xs:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105`}
+                    onClick={() => setCurrentTheme(theme)}
+                    className={`p-2 xs:p-3 rounded-lg ${theme.isCustom ? "bg-gray-700" : theme.background} ${theme.text} text-xs xs:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105`}
+                    style={
+                      theme.isCustom && theme.customUrl
+                        ? {
+                            backgroundImage: `url(${theme.customUrl})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }
+                        : {}
+                    }
                   >
                     {theme.name}
                   </button>
@@ -314,7 +449,7 @@ export default function AddHymn() {
               <div className="mb-4">
                 <Button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs xs:text-sm transition-colors duration-200"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs xs:text-sm transition-colors duration-200"
                   size="sm"
                 >
                   <Upload className="h-4 w-4 mr-2" />
@@ -324,33 +459,23 @@ export default function AddHymn() {
                   type="file"
                   ref={fileInputRef}
                   accept="image/*"
+                  onChange={handleUploadBackground}
                   className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (e) => {
-                        const imageUrl = e.target?.result as string;
-                        alert("تم تحميل الصورة بنجاح");
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
                 />
               </div>
             </TabsContent>
 
             <TabsContent value="text" className="space-y-4">
               <div className="flex items-center gap-2 mb-2">
-                <Type className="h-4 w-4 text-muted-foreground" />
-                <div className="font-bold text-foreground text-sm">لون النص</div>
+                <Type className="h-4 w-4 text-gray-400" />
+                <div className="font-bold text-white text-sm">لون النص</div>
               </div>
               <div className="grid grid-cols-2 gap-3 mb-4">
                 {textColors.map((color) => (
                   <button
                     key={color.name}
-                    onClick={() => updateSetting("textColor", color.class)}
-                    className={`p-2 xs:p-3 rounded-lg bg-muted ${color.class} text-xs xs:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105`}
+                    onClick={() => setCurrentTextColor(color)}
+                    className={`p-2 xs:p-3 rounded-lg bg-gray-700 ${color.class} text-xs xs:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105`}
                   >
                     {color.name}
                   </button>
@@ -359,42 +484,42 @@ export default function AddHymn() {
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs xs:text-sm text-foreground font-semibold">
-                    حجم الخط: {settings.fontSize}px
+                  <Label className="text-xs xs:text-sm text-white font-semibold">
+                    حجم الخط: {globalFontSize}px
                   </Label>
                 </div>
                 <Slider
                   min={24}
-                  max={96}
+                  max={120}
                   step={2}
-                  value={[settings.fontSize]}
-                  onValueChange={(value) => updateSetting("fontSize", value[0])}
+                  value={[globalFontSize]}
+                  onValueChange={(value) => setGlobalFontSize(value[0])}
                 />
               </div>
 
-              <div className="pt-4 border-t border-border">
+              <div className="pt-4 border-t border-gray-500">
                 <div className="flex items-center gap-2 mb-2">
-                  <Type className="h-4 w-4 text-muted-foreground" />
-                  <div className="font-bold text-foreground text-sm">الشعار</div>
+                  <Copyright className="h-4 w-4 text-gray-400" />
+                  <div className="font-bold text-white text-sm">الشعار</div>
                 </div>
-                <Input
+                <input
                   type="text"
-                  value={settings.watermark}
-                  onChange={(e) => updateSetting("watermark", e.target.value)}
+                  value={watermark}
+                  onChange={(e) => setWatermark(e.target.value)}
                   placeholder="أدخل نص الشعار هنا"
-                  className="mb-4 text-xs xs:text-sm bg-background border-border text-foreground text-right focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full p-2 border border-gray-500 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-600 mb-4 text-sm text-right"
                 />
 
                 <div className="flex items-center gap-2 mb-2">
-                  <Type className="h-4 w-4 text-muted-foreground" />
-                  <div className="font-bold text-foreground text-sm">لون الشعار</div>
+                  <Type className="h-4 w-4 text-gray-400" />
+                  <div className="font-bold text-white text-sm">لون الشعار</div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {textColors.map((color) => (
                     <button
                       key={color.name}
-                      onClick={() => updateSetting("watermarkColor", color.class)}
-                      className={`p-2 xs:p-3 rounded-lg bg-muted ${color.class} text-xs xs:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105`}
+                      onClick={() => setWatermarkColor(color)}
+                      className={`p-2 xs:p-3 rounded-lg bg-gray-700 ${color.class} text-xs xs:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105`}
                     >
                       {color.name}
                     </button>
@@ -403,16 +528,16 @@ export default function AddHymn() {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs xs:text-sm text-foreground font-semibold">
-                      حجم خط الشعار: {settings.watermarkSize}px
+                    <Label className="text-xs xs:text-sm text-white font-semibold">
+                      حجم خط الشعار: {watermarkFontSize}px
                     </Label>
                   </div>
                   <Slider
                     min={12}
                     max={48}
                     step={1}
-                    value={[settings.watermarkSize]}
-                    onValueChange={(value) => updateSetting("watermarkSize", value[0])}
+                    value={[watermarkFontSize]}
+                    onValueChange={(value) => setWatermarkFontSize(value[0])}
                   />
                 </div>
               </div>
@@ -420,40 +545,139 @@ export default function AddHymn() {
 
             <TabsContent value="advanced" className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="auto-advance" className="text-xs xs:text-sm text-foreground font-semibold">
+                <Label htmlFor="auto-advance" className="text-xs xs:text-sm text-white font-semibold">
                   تقدم تلقائي
                 </Label>
                 <Switch
                   id="auto-advance"
-                  checked={settings.autoAdvance}
-                  onCheckedChange={(checked) => updateSetting("autoAdvance", checked)}
-                  className="data-[state=checked]:bg-primary"
+                  checked={autoAdvance}
+                  onCheckedChange={setAutoAdvance}
+                  className="data-[state=checked]:bg-blue-600"
                 />
               </div>
 
-              {settings.autoAdvance && (
+              {autoAdvance && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs xs:text-sm text-foreground font-semibold">
-                      الفاصل الزمني: {settings.autoAdvanceInterval} ثانية
+                    <Label className="text-xs xs:text-sm text-white font-semibold">
+                      الفاصل الزمني: {autoAdvanceInterval} ثانية
                     </Label>
                   </div>
                   <Slider
                     min={5}
                     max={30}
                     step={1}
-                    value={[settings.autoAdvanceInterval]}
-                    onValueChange={(value) => updateSetting("autoAdvanceInterval", value[0])}
+                    value={[autoAdvanceInterval]}
+                    onValueChange={(value) => setAutoAdvanceInterval(value[0])}
+                    className="w-full"
                   />
                 </div>
               )}
 
-              <div className="pt-4 border-t border-border">
-                <div className="flex items-center gap-2 mb-4">
-                  <Settings className="h-4 w-4 text-muted-foreground" />
-                  <div className="font-bold text-foreground text-sm">معلومات</div>
+              <div className="space-y-2">
+                <Label className="text-xs xs:text-sm text-white font-semibold">
+                  تأثير الانتقال بين الشرائح
+                </Label>
+                <Select
+                  value={slideTransition}
+                  onValueChange={setSlideTransition}
+                >
+                  <SelectTrigger className="w-full bg-gray-800 text-white border-gray-500">
+                    <SelectValue placeholder="اختر تأثير الانتقال" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 text-white border-gray-500">
+                    {transitionOptions.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        className="hover:bg-gray-700"
+                      >
+                        {option.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="pt-4 border-t border-gray-500">
+                <div className="flex items-center gap-2 mb-2">
+                  <Upload className="h-4 w-4 text-gray-400" />
+                  <div className="font-bold text-white text-sm">صورة في الخلفية</div>
                 </div>
-                <div className="text-xs xs:text-sm text-muted-foreground space-y-2">
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs xs:text-sm transition-colors duration-200"
+                  size="sm"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  اختيار صورة
+                </Button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleUploadImage}
+                  className="hidden"
+                />
+
+                {backgroundImage && (
+                  <>
+                    <div className="space-y-2 mt-4">
+                      <Label className="text-xs xs:text-sm text-white font-semibold">
+                        الموضع الأفقي: {imagePositionX}%
+                      </Label>
+                      <Slider
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={[imagePositionX]}
+                        onValueChange={(value) => setImagePositionX(value[0])}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2 mt-4">
+                      <Label className="text-xs xs:text-sm text-white font-semibold">
+                        الموضع العمودي: {imagePositionY}%
+                      </Label>
+                      <Slider
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={[imagePositionY]}
+                        onValueChange={(value) => setImagePositionY(value[0])}
+                        className="w-full"
+                      />
+                    </div>
+                    <div className="space-y-2 mt-4">
+                      <Label className="text-xs xs:text-sm text-white font-semibold">
+                        الحجم: {imageSize}%
+                      </Label>
+                      <Slider
+                        min={10}
+                        max={100}
+                        step={1}
+                        value={[imageSize]}
+                        onValueChange={(value) => setImageSize(value[0])}
+                        className="w-full"
+                      />
+                    </div>
+                    <Button
+                      onClick={() => setBackgroundImage(null)}
+                      className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white text-xs xs:text-sm transition-colors duration-200"
+                      size="sm"
+                    >
+                      إزالة الصورة
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-gray-500">
+                <div className="flex items-center gap-2 mb-4">
+                  <Settings className="h-4 w-4 text-gray-400" />
+                  <div className="font-bold text-white text-sm">معلومات</div>
+                </div>
+                <div className="text-xs xs:text-sm text-gray-400 space-y-2">
                   <p>استخدم مفاتيح الأسهم للتنقل بين الشرائح</p>
                   <p>اضغط ESC للخروج من وضع ملء الشاشة</p>
                 </div>
@@ -462,13 +686,13 @@ export default function AddHymn() {
           </Tabs>
 
           <Button
-            className="w-full mt-6 text-xs xs:text-sm bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200"
-            onClick={() => setShowSettings(false)}
+            className="w-full mt-6 text-xs xs:text-sm bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-200"
+            onClick={saveSettings}
           >
             حفظ الإعدادات
           </Button>
         </div>
-      </div>
+      </motion.div>
     );
   };
 
@@ -480,7 +704,7 @@ export default function AddHymn() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 xs:space-y-6">
-        {!showPreview ? (
+        {!showFullScreen ? (
           currentStep === 1 ? (
             // Step 1: Enter hymn title and number of slides
             <div className="space-y-4 xs:space-y-6">
@@ -596,60 +820,127 @@ export default function AddHymn() {
           )
         ) : (
           // Fullscreen preview mode
-          <div
-            className={`fixed inset-0 z-50 flex items-center justify-center ${settings.background}`}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            <div className="relative w-full h-full flex items-center justify-center">
-              <div className="text-center px-4 xs:px-8 w-full">
-                <p
-                  className={`font-extrabold ${settings.textColor} leading-relaxed whitespace-pre-line max-w-6xl mx-auto text-right arabic-text`}
-                  style={{ fontSize: `${settings.fontSize}px` }}
+          <AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0 }}
+              className={`fixed inset-0 z-50 flex items-center justify-center ${
+                currentTheme.isCustom ? "" : currentTheme.background
+              }`}
+              style={
+                currentTheme.isCustom && currentTheme.customUrl
+                  ? {
+                      backgroundImage: `url(${currentTheme.customUrl})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundRepeat: "no-repeat",
+                    }
+                  : {}
+              }
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              {currentTheme.isCustom && currentTheme.customUrl && (
+                <div className="absolute inset-0 bg-black/50 z-10" />
+              )}
+              {backgroundImage && (
+                <img
+                  src={backgroundImage}
+                  alt="Background Image"
+                  className="absolute z-15"
+                  style={{
+                    left: `${imagePositionX}%`,
+                    top: `${imagePositionY}%`,
+                    transform: "translate(-50%, -50%)",
+                    width: `${imageSize}%`,
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    objectFit: "contain",
+                  }}
+                />
+              )}
+
+              <motion.div
+                key={currentSlide}
+                {...getTransitionVariants()}
+                className="relative w-full h-full flex items-center justify-center z-20"
+              >
+                <div className="text-center px-4 sm:px-8 w-full h-full flex items-center justify-center">
+                  <p
+                    className={`${currentTextColor.class} leading-relaxed whitespace-pre-line max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center`}
+                    style={{
+                      fontSize: `${calculateDynamicFontSize(slides[currentSlide])}px`,
+                      fontFamily: '"Noto Sans Arabic", sans-serif',
+                      fontWeight: 700,
+                      direction: 'rtl',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {slides[currentSlide]}
+                  </p>
+                </div>
+
+                {watermark && (
+                  <div
+                    className={`absolute top-4 xs:bottom-4 right-4 opacity-50 ${watermarkColor.class} z-30 text-sm xs:text-base`}
+                    style={{ fontSize: `${watermarkFontSize}px` }}
+                  >
+                    {watermark}
+                  </div>
+                )}
+              </motion.div>
+
+              <div className="fixed top-8 left-8 flex items-center gap-4 sm:gap-6 z-30">
+                <button
+                  onClick={exitFullScreen}
+                  className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200"
+                  aria-label="إغلاق"
                 >
-                  {slides[currentSlide]}
-                </p>
+                  <X className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200"
+                  aria-label="الإعدادات"
+                >
+                  <Settings className="h-6 w-6" />
+                </button>
               </div>
 
-              {settings.watermark && (
-                <div
-                  className={`absolute top-4 right-4 opacity-50 ${settings.watermarkColor} text-right arabic-text`}
-                  style={{ fontSize: `${settings.watermarkSize}px` }}
+              <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 sm:gap-6 z-30">
+                <button
+                  onClick={handlePrevSlide}
+                  className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
+                    currentSlide === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-white/20"
+                  }`}
+                  disabled={currentSlide === 0}
+                  aria-label="الشريحة السابقة"
                 >
-                  {settings.watermark}
-                </div>
-              )}
-            </div>
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
 
-            <div className="fixed top-4 xs:top-8 left-4 xs:left-8 flex items-center gap-2 xs:gap-4 z-30">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="bg-black/50 hover:bg-white/20 text-white rounded-full h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12"
-                onClick={exitFullScreen}
-              >
-                <X className="h-4 xs:h-6 w-4 xs:w-6" />
-              </Button>
+                <span className="text-white font-semibold">
+                  {currentSlide + 1} / {slides.length}
+                </span>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="bg-black/50 hover:bg-white/20 text-white rounded-full h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12"
-                onClick={() => setShowSettings(!showSettings)}
-              >
-                <Settings className="h-4 xs:h-6 w-4 xs:w-6" />
-              </Button>
-            </div>
+                <button
+                  onClick={handleNextSlide}
+                  className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
+                    currentSlide === slides.length - 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-white/20"
+                  }`}
+                  disabled={currentSlide === slides.length - 1}
+                  aria-label="الشريحة التالية"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </div>
 
-            <div className="fixed bottom-8 xs:bottom-12 left-0 right-0 flex justify-center items-center px-6 xs:px-12 z-30">
-              <span className="text-white text-sm xs:text-xl font-medium bg-black/50 px-4 xs:px-6 py-1 xs:py-2 rounded-full">
-                {currentSlide + 1} / {slides.length}
-              </span>
-            </div>
-
-            {showSettings && renderSettingsPanel()}
-          </div>
+              {showSettings && renderSettingsPanel()}
+            </motion.div>
+          </AnimatePresence>
         )}
       </CardContent>
     </Card>
