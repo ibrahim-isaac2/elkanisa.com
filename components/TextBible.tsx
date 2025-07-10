@@ -107,15 +107,6 @@ type SearchResult = {
   text: string;
 };
 
-type ChallengeType = "completeVerse" | "identifyBook";
-
-interface Challenge {
-  type: ChallengeType;
-  question: string;
-  correctAnswer: string;
-  options: string[];
-}
-
 const themes: Theme[] = [
   { name: "افتراضي", background: "bg-black", text: "text-white" },
   { name: "ازرق داكن", background: "bg-gradient-to-br from-blue-800 to-blue-950", text: "text-white" },
@@ -285,15 +276,6 @@ export default function TextBible() {
   const [imageSize, setImageSize] = useState(50);
   const [searchMode, setSearchMode] = useState<"books" | "verses">("books");
   const [verseSearchResults, setVerseSearchResults] = useState<SearchResult[]>([]);
-  const [showChallenge, setShowChallenge] = useState(false);
-  const [challenge, setChallenge] = useState<Challenge | null>(null);
-  const [score, setScore] = useState(() => {
-    if (typeof window !== "undefined") {
-      const savedScore = localStorage.getItem("bibleChallengeScore");
-      return savedScore ? parseInt(savedScore, 10) : 0;
-    }
-    return 0;
-  });
   const [bookMap, setBookMap] = useState<{ [key: string]: BibleBook }>({});
 
   // Precompute maps for abbreviations for performance optimization
@@ -866,74 +848,6 @@ export default function TextBible() {
     return baseFontSize;
   };
 
-  const generateChallenge = useCallback(() => {
-    if (!bibleData) return;
-    const challengeTypes: ChallengeType[] = ["completeVerse", "identifyBook"];
-    const randomType = challengeTypes[Math.floor(Math.random() * challengeTypes.length)];
-    let question = "";
-    let correctAnswer = "";
-    let options: string[] = [];
-    if (randomType === "completeVerse") {
-      const allVerses = bibleData.flatMap((section) =>
-        section.books.flatMap((book) =>
-          book.chapters.flatMap((chapter) => chapter.verses)
-        )
-      );
-      const randomVerse = allVerses[Math.floor(Math.random() * allVerses.length)];
-      const words = randomVerse.text.split(" ");
-      if (words.length < 4) return;
-      const hiddenIndex = Math.floor(Math.random() * (words.length - 1)) + 1;
-      const hiddenWord = words[hiddenIndex];
-      words[hiddenIndex] = "_____";
-      question = words.join(" ");
-      correctAnswer = hiddenWord;
-      options = [hiddenWord];
-      while (options.length < 4) {
-        const randomWord =
-          allVerses[Math.floor(Math.random() * allVerses.length)].text.split(" ")[
-            Math.floor(Math.random() * 5)
-          ];
-        if (!options.includes(randomWord) && randomWord !== hiddenWord) {
-          options.push(randomWord);
-        }
-      }
-      options.sort(() => Math.random() - 0.5);
-    } else if (randomType === "identifyBook") {
-      const allBooks = bibleData.flatMap((section) => section.books);
-      const randomBook = allBooks[Math.floor(Math.random() * allBooks.length)];
-      const randomChapter =
-        randomBook.chapters[Math.floor(Math.random() * randomBook.chapters.length)];
-      const randomVerse =
-        randomChapter.verses[Math.floor(Math.random() * randomChapter.verses.length)];
-      const verseSnippet = randomVerse.text.split(" ").slice(0, 5).join(" ") + "...";
-      question = `في اي سفر تجد هذه الآية: "${verseSnippet}"؟`;
-      correctAnswer = randomBook.name;
-      options = [randomBook.name];
-      while (options.length < 4) {
-        const randomBookName = allBooks[Math.floor(Math.random() * allBooks.length)].name;
-        if (!options.includes(randomBookName)) options.push(randomBookName);
-      }
-      options.sort(() => Math.random() - 0.5);
-    }
-    setChallenge({ type: randomType, question, correctAnswer, options });
-  }, [bibleData]);
-
-  const handleChallengeAnswer = (answer: string) => {
-    if (!challenge) return;
-    const isCorrect = answer === challenge.correctAnswer;
-    const newScore = isCorrect ? score + 10 : score - 5;
-    setScore(newScore);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("bibleChallengeScore", newScore.toString());
-    }
-    alert(isCorrect ? "اجابة صحيحة! +10 نقاط" : "اجابة خاطئة. -5 نقاط");
-    generateChallenge();
-  };
-
-  useEffect(() => {
-    if (showChallenge && !challenge) generateChallenge();
-  }, [showChallenge, challenge, generateChallenge]);
-
   return (
     <div className={`relative min-h-screen bg-background ${theme === "dark" ? "dark" : ""}`}>
       {!showFullScreen ? (
@@ -993,7 +907,6 @@ export default function TextBible() {
                         setError(null);
                         if (e.target.value.trim()) {
                           setShowRecentSearches(false);
-                          setShowChallenge(false);
                         }
                       }}
                       onKeyPress={(e) => {
@@ -1245,7 +1158,7 @@ export default function TextBible() {
                 </Select>
               </div>
 
-              {favoriteBibleChapters.length > 0 && !searchQuery.trim() && !showRecentSearches && !showChallenge && (
+              {favoriteBibleChapters.length > 0 && !searchQuery.trim() && !showRecentSearches && (
                 <div className="w-full max-w-3xl mx-auto mt-6 sm:mt-8">
                   <h2 className="text-lg sm:text-xl font-bold mb-4 text-foreground">المفضلة</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1274,55 +1187,6 @@ export default function TextBible() {
                       );
                     })}
                   </div>
-                </div>
-              )}
-
-              {!searchQuery.trim() && !showRecentSearches && (
-                <div className="w-full max-w-3xl mx-auto mt-6 sm:mt-8">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                      تحدي الكتاب المقدس
-                    </h2>
-                    <Button
-                      onClick={() => {
-                        setShowChallenge(true);
-                        generateChallenge();
-                      }}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      ابدا التحدي
-                    </Button>
-                  </div>
-                  {showChallenge && challenge && (
-                    <Card className="p-4">
-                      <CardContent>
-                        <div className="text-center mb-4">
-                          <h3 className="text-lg font-bold">النقاط: {score}</h3>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            {challenge.type === "completeVerse" ? "اكمل الآية:" : "في اي سفر؟"}
-                          </p>
-                          <p className="text-base font-semibold mt-2">{challenge.question}</p>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {challenge.options.map((option, index) => (
-                            <Button
-                              key={index}
-                              onClick={() => handleChallengeAnswer(option)}
-                              className="w-full bg-gray-700 hover:bg-gray-600 text-white"
-                            >
-                              {option}
-                            </Button>
-                          ))}
-                        </div>
-                        <Button
-                          onClick={generateChallenge}
-                          className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white"
-                        >
-                          تحدي جديد
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  )}
                 </div>
               )}
             </>
@@ -1654,7 +1518,7 @@ export default function TextBible() {
                                 size="sm"
                                 variant={displayMode === "slides" ? "default" : "outline"}
                                 onClick={() => setDisplayMode("slides")}
-                                className={`${
+                                className={`${ 
                                   displayMode === "slides"
                                     ? "bg-blue-600 text-white"
                                     : "bg-gray-700 text-white border-gray-500"
@@ -1667,7 +1531,7 @@ export default function TextBible() {
                                 size="sm"
                                 variant={displayMode === "list" ? "default" : "outline"}
                                 onClick={() => setDisplayMode("list")}
-                                className={`${
+                                className={`${ 
                                   displayMode === "list"
                                     ? "bg-blue-600 text-white"
                                     : "bg-gray-700 text-white border-gray-500"
