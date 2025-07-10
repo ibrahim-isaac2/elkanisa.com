@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Instagram, Facebook, Mail, Book } from "lucide-react";
+import { Instagram, Facebook, Mail } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "@/app/ThemeContext";
 import { useEffect, useState } from "react";
@@ -72,27 +72,6 @@ export default function Footer() {
                 alt="Ibrahim Isaac"
                 className="w-full h-full rounded-full object-cover absolute top-0 left-0 z-10"
               />
-              <motion.div
-                className="absolute top-0 left-0 w-full h-full rounded-full bg-transparent border-4 border-transparent"
-                animate={{
-                  rotate: 360,
-                  borderImage: [
-                    "linear-gradient(45deg, #4b5bdc, #d14bd4, #ffaa00, #00ffaa) 1",
-                    "linear-gradient(45deg, #ffaa00, #00ffaa, #4b5bdc, #d14bd4) 1",
-                  ],
-                }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  repeatType: "loop",
-                  ease: "linear",
-                }}
-                style={{
-                  boxShadow:
-                    "0 0 20px rgba(75, 91, 220, 0.7), 0 0 40px rgba(209, 75, 212, 0.5), 0 0 60px rgba(255, 170, 0, 0.6)",
-                  filter: "blur(2px)",
-                }}
-              />
             </div>
 
             <p
@@ -143,14 +122,14 @@ export default function Footer() {
                   href="https://ibrahim-isaac.vercel.app/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
+                  className={`h-8 w-8 rounded-full text-lg font-medium transition-colors flex items-center justify-center ${
                     theme === "dark"
                       ? "bg-white text-black hover:bg-gray-200"
                       : "bg-gray-900 text-white hover:bg-gray-700"
                   }`}
                 >
-                  <Book className="h-5 w-5" />
-                  شوف كتبي من هنا
+                  كتبي
+                  <span className="sr-only">شوف كتبي من هنا</span>
                 </Link>
               </motion.div>
             </div>
