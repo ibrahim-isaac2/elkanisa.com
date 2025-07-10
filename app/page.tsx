@@ -13,7 +13,7 @@ import TextBible from "@/components/TextBible";
 import PowerPointSection from "@/components/PowerPointSection";
 import DailyVerse from "@/components/DailyVerse";
 import ChatBot from "@/components/ChatBot";
-import CompetitionsSection from "@/components/CompetitionsSection";
+//import CompetitionsSection from "@/components/CompetitionsSection";
 import { useEffect, useState } from "react";
 
 export default function Home() {
@@ -53,7 +53,7 @@ export default function Home() {
     { id: "add-lecture", label: "إضافة محاضرة", component: <AddLecture /> },
     { id: "attendance-record", label: "تسجيل الحضور", component: <AttendanceRecord /> },
     { id: "powerpoint-section", label: "عروض تقديمية", component: <PowerPointSection /> },
-    { id: "competitions-section", label: "المسابقات", component: <CompetitionsSection /> },
+  //  { id: "competitions-section", label: "المسابقات", component: <CompetitionsSection /> },
     { id: "daily-verse", label: "آية اليوم", component: <DailyVerse /> },
   ];
 
