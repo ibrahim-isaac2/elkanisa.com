@@ -5,17 +5,17 @@ import { ThemeProvider } from "./ThemeContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
-// تصدير metadata مع كلمات مفتاح continuaciónية شاملة
+// تصدير metadata مع كلمات مفتاحية شاملة
 export const metadata: Metadata = {
-  title: "الكنيسة",
-  description: "استمتع بترانيم كنسية، الكتاب المقدس النصي والمسموع، آية اليوم، خدمات كنسية، وتطبيق ديني بدون إنترنت مع الكنيسة. اكتشف ترانيم كلمات وألحان، تسجيل حضور، وعروض تقديمية دينية.",
+  title: "تطبيق الكنيسة",
+  description: "استمتع بترانيم كنسية، الكتاب المقدس النصي والمسموع، آية اليوم، خدمات كنسية، وتطبيق ديني بدون إنترنت مع تطبيق الكنيسة. اكتشف ترانيم كلمات وألحان، تسجيل حضور، وعروض تقديمية دينية.",
   keywords: [
+    "تطبيق الكنيسة",
     "ترانيم كنسية",
     "ترانيم بدون إنترنت",
     "الكتاب المقدس",
     "الكتاب المقدس النصي",
     "الكتاب المقدس المسموع",
-    "تطبيق الكنيسة",
     "خدمات كنسية",
     "آية اليوم",
     "ترانيم كلمات وألحان",
@@ -56,7 +56,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#000000" />
         {/* Open Graph Tags */}
-        <meta property="og:title" content="الكنيسة - ترانيم كنسية والكتاب المقدس بدون إنترنت" />
+        <meta property="og:title" content="تطبيق الكنيسة - ترانيم كنسية والكتاب المقدس بدون إنترنت" />
         <meta
           property="og:description"
           content="تطبيق الكنيسة يقدم ترانيم كنسية، الكتاب المقدس النصي والمسموع، آية اليوم، وخدمات كنسية بدون إنترنت."
@@ -64,10 +64,10 @@ export default function RootLayout({
         <meta property="og:image" content="/og-image.png" />
         <meta property="og:url" content="https://elkanisa.com" />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="الكنيسة" />
+        <meta property="og:site_name" content="تطبيق الكنيسة" />
         {/* Twitter Cards */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="الكنيسة - ترانيم كنسية والكتاب المقدس" />
+        <meta name="twitter:title" content="تطبيق الكنيسة - ترانيم كنسية والكتاب المقدس" />
         <meta
           name="twitter:description"
           content="تطبيق الكنيسة يقدم ترانيم كنسية، الكتاب المقدس النصي والمسموع، وخدمات كنسية بدون إنترنت."
@@ -80,7 +80,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              "name": "الكنيسة",
+              "name": "تطبيق الكنيسة",
               "url": "https://elkanisa.com",
               "description":
                 "تطبيق الكنيسة لعرض الترانيم الكنسية، الكتاب المقدس النصي والمسموع، آية اليوم، وإدارة الخدمات الكنسية بدون إنترنت.",
@@ -99,11 +99,11 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              "name": "الكنيسة",
+              "name": "تطبيق الكنيسة",
               "url": "https://elkanisa.com",
               "logo": "https://elkanisa.com/icon.png",
               "sameAs": [
-                "https://x.com/elkanisa" // أضف روابط السوشيال ميديا لو عندك
+                "https://x.com/elkanisa"
               ]
             }),
           }}
