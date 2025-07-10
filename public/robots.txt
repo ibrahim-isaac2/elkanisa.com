@@ -13,7 +13,6 @@ Allow: /#chat-bot
 Allow: /#footer
 
 # روابط خارجية مهمة
-Allow: https://competitions-hema.vercel.app/
 Allow: https://ibrahim-isaac.vercel.app/
 Allow: https://www.instagram.com/ibrahim._isaac/
 Allow: https://www.facebook.com/share/1AJSJen6xu/
