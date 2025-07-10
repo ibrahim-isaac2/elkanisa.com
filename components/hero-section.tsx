@@ -1,4 +1,3 @@
-
 "use client";
 
 import type React from "react";
@@ -216,19 +215,6 @@ export default function HeroSection() {
   const [imagePositionX, setImagePositionX] = useState(50);
   const [imagePositionY, setImagePositionY] = useState(50);
   const [imageSize, setImageSize] = useState(50);
-  const [showChallenge, setShowChallenge] = useState(false);
-  const [challenge, setChallenge] = useState<{
-    question: string;
-    correctAnswer: string;
-    options: string[];
-  } | null>(null);
-  const [score, setScore] = useState(() => {
-    if (typeof window !== "undefined") {
-      const savedScore = localStorage.getItem("challengeScore");
-      return savedScore ? parseInt(savedScore, 10) : 0;
-    }
-    return 0;
-  });
   const [slideTransition, setSlideTransition] = useState<string>("fade");
 
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -522,7 +508,6 @@ export default function HeroSection() {
     setSelectedItem(item);
     setCurrentSlide(0);
     setShowFullScreen(true);
-    setShowChallenge(false);
 
     if (searchQuery) {
       addToRecentSearches(searchQuery);
@@ -667,57 +652,6 @@ export default function HeroSection() {
     }
   };
 
-  const generateChallenge = useCallback(() => {
-    if (songs.length === 0) return;
-
-    const randomSong = songs[Math.floor(Math.random() * songs.length)];
-    const allVerses = randomSong.verses.flat();
-    if (randomSong.chorus) {
-      allVerses.push(...randomSong.chorus);
-    }
-    if (allVerses.length === 0) return;
-
-    const randomVerse = allVerses[Math.floor(Math.random() * allVerses.length)];
-    const words = randomVerse.split(" ");
-    const question = words.slice(0, Math.min(3, words.length)).join(" ") + "...";
-
-    const options = [randomSong.title];
-    while (options.length < 4) {
-      const randomOption = songs[Math.floor(Math.random() * songs.length)].title;
-      if (!options.includes(randomOption)) {
-        options.push(randomOption);
-      }
-    }
-    options.sort(() => Math.random() - 0.5);
-
-    setChallenge({
-      question,
-      correctAnswer: randomSong.title,
-      options,
-    });
-  }, [songs]);
-
-  const handleChallengeAnswer = (answer: string) => {
-    if (!challenge) return;
-
-    const isCorrect = answer === challenge.correctAnswer;
-    const newScore = isCorrect ? score + 10 : score - 5;
-    setScore(newScore);
-
-    if (typeof window !== "undefined") {
-      localStorage.setItem("challengeScore", newScore.toString());
-    }
-
-    alert(isCorrect ? "إجابة صحيحة! +10 نقاط" : "إجابة خاطئة. -5 نقاط");
-    generateChallenge();
-  };
-
-  useEffect(() => {
-    if (showChallenge && !challenge) {
-      generateChallenge();
-    }
-  }, [showChallenge, challenge, generateChallenge]);
-
   useEffect(() => {
     if (showFullScreen && autoAdvance && selectedItem) {
       if (autoAdvanceTimerRef.current) {
@@ -843,7 +777,6 @@ export default function HeroSection() {
                   setSearchQuery(e.target.value);
                   if (e.target.value.trim()) {
                     setShowRecentSearches(false);
-                    setShowChallenge(false);
                   }
                 }}
                 onFocus={() => {
@@ -999,7 +932,7 @@ export default function HeroSection() {
             )}
           </AnimatePresence>
 
-          {favorites.length > 0 && !searchQuery.trim() && !showRecentSearches && !showChallenge && (
+          {favorites.length > 0 && !searchQuery.trim() && !showRecentSearches && (
             <div className="w-full max-w-3xl mx-auto mt-6 sm:mt-8">
               <h2 className="text-lg sm:text-xl font-bold mb-4 text-foreground">
                 المفضلة
@@ -1060,7 +993,7 @@ export default function HeroSection() {
             </div>
           )}
 
-          {playlist.length > 0 && !searchQuery.trim() && !showRecentSearches && !showChallenge && (
+          {playlist.length > 0 && !searchQuery.trim() && !showRecentSearches && (
             <div className="w-full max-w-3xl mx-auto mt-6 sm:mt-8">
               <h2 className="text-lg sm:text-xl font-bold mb-4 text-foreground">
                 قائمة التشغيل
@@ -1095,57 +1028,6 @@ export default function HeroSection() {
                   );
                 })}
               </div>
-            </div>
-          )}
-
-          {!searchQuery.trim() && !showRecentSearches && (
-            <div className="w-full max-w-3xl mx-auto mt-6 sm:mt-8">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                  تحدي الترانيم
-                </h2>
-                <Button
-                  onClick={() => {
-                    setShowChallenge(true);
-                    generateChallenge();
-                  }}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  ابدأ التحدي
-                </Button>
-              </div>
-              {showChallenge && challenge && (
-                <Card className="p-4">
-                  <CardContent>
-                    <div className="text-center mb-4">
-                      <h3 className="text-lg font-bold">النقاط: {score}</h3>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        ما اسم الترنيمة التي تحتوي على هذا المقطع؟
-                      </p>
-                      <p className="text-base font-semibold mt-2">
-                        {challenge.question}
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {challenge.options.map((option, index) => (
-                        <Button
-                          key={index}
-                          onClick={() => handleChallengeAnswer(option)}
-                          className="w-full bg-gray-700 hover:bg-gray-600 text-white"
-                        >
-                          {option}
-                        </Button>
-                      ))}
-                    </div>
-                    <Button
-                      onClick={generateChallenge}
-                      className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      تحدي جديد
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
             </div>
           )}
         </div>
