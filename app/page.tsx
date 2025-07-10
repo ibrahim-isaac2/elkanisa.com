@@ -14,12 +14,11 @@ import PowerPointSection from "@/components/PowerPointSection";
 import DailyVerse from "@/components/DailyVerse";
 import ChatBot from "@/components/ChatBot";
 import CompetitionsSection from "@/components/CompetitionsSection";
-import SectionHandler from "@/components/SectionHandler"; // استيراد المكون غير المرئي
-import SEOWrapper from "@/components/seo_wrapper"; // استيراد مكون SEO الجديد
 import { useEffect, useState } from "react";
 
 export default function Home() {
   const [isOnline, setIsOnline] = useState(true);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
 
   // تسجيل الـ Service Worker
   useEffect(() => {
@@ -39,7 +38,7 @@ export default function Home() {
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener("online", handleOnline);
-    window.removeEventListener("offline", handleOffline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
       window.removeEventListener("online", handleOnline);
@@ -47,14 +46,28 @@ export default function Home() {
     };
   }, []);
 
+  // قائمة الأقسام لشريط التنقل
+  const sections = [
+    { id: "word-and-melody-hymns", label: "ترانيم كلمة ولحن", component: <WordAndMelodyHymns /> },
+    { id: "audio-bible", label: "الكتاب المقدس المسموع", component: <AudioBible /> },
+    { id: "add-lecture", label: "إضافة محاضرة", component: <AddLecture /> },
+    { id: "attendance-record", label: "تسجيل الحضور", component: <AttendanceRecord /> },
+    { id: "powerpoint-section", label: "عروض تقديمية", component: <PowerPointSection /> },
+    { id: "competitions-section", label: "المسابقات", component: <CompetitionsSection /> },
+    { id: "daily-verse", label: "آية اليوم", component: <DailyVerse /> },
+  ];
+
+  // التعامل مع فتح الشات بوت
+  const toggleChatBot = () => {
+    const chatButton = document.querySelector('button[aria-label="فتح المحادثة"]');
+    if (chatButton) {
+      chatButton.click(); // محاكاة ضغط زر الأيقونة العائمة
+    }
+    setActiveSection(null); // إلغاء أي قسم مفتوح آخر
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
-      {/* إضافة مكون SEO الجديد (مخفي بصرياً) */}
-      <SEOWrapper />
-      
-      {/* إضافة المكون غير المرئي */}
-      <SectionHandler />
-      
       {!isOnline && (
         <div className="bg-yellow-100 text-yellow-800 p-2 text-center">
           أنت في وضع عدم الاتصال. بعض الوظائف قد تكون محدودة.
@@ -62,57 +75,50 @@ export default function Home() {
       )}
       <main className="container mx-auto p-6 space-y-8 flex-1">
         <Header />
-        <h1 className="text-3xl font-bold text-center">
-        </h1>
         <HeroSection />
         <div className="space-y-8 max-w-4xl mx-auto">
-          {/* إضافة معرفات للأقسام فقط بدون تغيير الشكل */}
-          <div id="text-bible">
-            <TextBible />
-          </div>
-          
-          <div id="word-and-melody-hymns">
-            <WordAndMelodyHymns />
-          </div>
-          
-          <div id="audio-bible">
-            <AudioBible />
-          </div>
-          
-          <div id="add-lecture">
-            <AddLecture />
-          </div>
-          
-          <div id="add-hymn">
-            <AddHymn />
-          </div>
-          
-          <div id="attendance-record">
-            <AttendanceRecord />
-          </div>
-          
-          <div id="powerpoint-section">
-            <PowerPointSection />
-          </div>
-          
-          <div id="competitions-section">
-            <CompetitionsSection />
-          </div>
+          <TextBible />
+          <AddHymn />
         </div>
+
+        {/* شريط التنقل */}
+        <nav className="bg-sidebar-background shadow-md rounded-lg p-4">
+          <h2 className="text-xl font-semibold text-sidebar-foreground mb-4 text-center">
+            استكشف المزيد
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => {
+                  setActiveSection(section.id);
+                }}
+                className="bg-sidebar-primary text-sidebar-primary-foreground px-4 py-2 rounded-lg hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-200"
+              >
+                {section.label}
+              </button>
+            ))}
+            <button
+              onClick={toggleChatBot}
+              className="bg-sidebar-primary text-sidebar-primary-foreground px-4 py-2 rounded-lg hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-200"
+            >
+              الشات بوت
+            </button>
+          </div>
+        </nav>
+
+        {/* عرض القسم المختار */}
+        {activeSection && (
+          <div className="mt-8 max-w-4xl mx-auto animate-fadeOnce">
+            {sections.find((section) => section.id === activeSection)?.component}
+          </div>
+        )}
+
+        {/* عرض الشات بوت */}
+        <ChatBot />
       </main>
       <InstallButton />
-      
-      <div id="footer">
-        <Footer />
-      </div>
-      
-      <div id="daily-verse">
-        <DailyVerse />
-      </div>
-      
-      <div id="chat-bot">
-        <ChatBot />
-      </div>
+      <Footer />
     </div>
   );
 }
