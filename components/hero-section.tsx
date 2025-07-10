@@ -525,21 +525,34 @@ export default function HeroSection() {
   };
 
   const formatContent = useCallback((item: Song) => {
-    if (!item) return [];
+  if (!item) return [];
 
-    let content: string[] = [];
-    if (item.chorusFirst && item.chorus) {
-      content.push(...item.chorus);
-    }
+  let content: string[] = [];
+
+  // إضافة الكورس إذا كان موجودًا وكان chorusFirst، ثم الأبيات
+  if (item.chorusFirst && item.chorus) {
+    content.push(...item.chorus);
+  }
+
+  // إضافة الأبيات إذا وجدت
+  if (item.verses && item.verses.length > 0) {
     item.verses.forEach((verse, idx) => {
       content.push(...verse);
       if (item.chorus && !item.chorusFirst && idx < item.verses.length - 1) {
-        content.push(...item.chorus);
+        content.push(...item.chorus); // إضافة الكورس بين الأبيات إذا لم يكن chorusFirst
       }
     });
-    content.push("SITE_ICON_SLIDE");
-    return content;
-  }, []);
+  }
+  // إضافة الكورس في النهاية إذا لم يتم إضافته مسبقًا وكان موجودًا
+  else if (item.chorus && item.chorus.length > 0) {
+    content.push(...item.chorus);
+  }
+
+  // إضافة الإيقونة في النهاية
+  content.push("SITE_ICON_SLIDE");
+
+  return content;
+}, []);
 
   const handleNextSlide = useCallback(() => {
     if (!selectedItem) return;
