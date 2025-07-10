@@ -1114,7 +1114,7 @@ export default function HeroSection() {
                               : globalFontSize
                           }px`,
                           fontFamily: '"Noto Sans Arabic", sans-serif',
-                          fontWeight: 600,
+                          fontWeight: 700,
                           direction: 'rtl',
                           textAlign: 'center',
                         }}
