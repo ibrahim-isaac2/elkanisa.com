@@ -60,7 +60,7 @@ export default function Home() {
   // التعامل مع فتح الشات بوت
   const toggleChatBot = () => {
     const chatButton = document.querySelector('button[aria-label="فتح المحادثة"]');
-    if (chatButton) {
+    if (chatButton instanceof HTMLElement) {
       chatButton.click(); // محاكاة ضغط زر الأيقونة العائمة
     }
     setActiveSection(null); // إلغاء أي قسم مفتوح آخر
