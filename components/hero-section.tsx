@@ -216,6 +216,7 @@ export default function HeroSection() {
   const [imagePositionY, setImagePositionY] = useState(50);
   const [imageSize, setImageSize] = useState(50);
   const [slideTransition, setSlideTransition] = useState<string>("none");
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
@@ -227,17 +228,64 @@ export default function HeroSection() {
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
 
   const calculateDynamicFontSize = (text: string) => {
+    if (typeof window === "undefined") return globalFontSize;
+
     const textLength = text.length;
+    const { width, height } = windowSize;
     const baseFontSize = globalFontSize;
-    const minFontSize = 24;
-    const maxFontSize = 120;
+
+    // الحدود الافتراضية بناءً على حجم الشاشة
+    let minFontSize = 16;
+    let maxFontSize = 120;
+
+    // تعديل الحدود بناءً على حجم الشاشة
+    if (width < 640) {
+      minFontSize = 14;
+      maxFontSize = 48;
+    } else if (width >= 640 && width < 1024) {
+      minFontSize = 18;
+      maxFontSize = 72;
+    } else if (width >= 1024) {
+      minFontSize = 24;
+      maxFontSize = 120; // زيادة الحد الأقصى للشاشات الكبيرة
+    }
+
+    // حساب حجم الخط بناءً على طول النص
+    let fontSize = baseFontSize;
 
     if (textLength < 50) {
-      return Math.min(baseFontSize * 1.2, maxFontSize);
+      // نصوص قصيرة: زيادة حجم الخط
+      fontSize = Math.min(baseFontSize * 1.2, maxFontSize);
     } else if (textLength > 200) {
-      return Math.max(baseFontSize * 0.8, minFontSize);
+      // نصوص طويلة: تصغير حجم الخط بدرجة أقل (0.85 بدل 0.7)
+      fontSize = Math.max(baseFontSize * 0.85, minFontSize);
+    } else {
+      // نصوص متوسطة: استخدام حجم الخط الأساسي مع تعديل طفيف
+      fontSize = Math.max(
+        Math.min(baseFontSize * (1 - textLength / 500), maxFontSize),
+        minFontSize
+      );
     }
-    return baseFontSize;
+
+    // زيادة إضافية للشاشات الكبيرة
+    if (width >= 1280) {
+      fontSize = Math.min(fontSize * 1.2, maxFontSize); // زيادة 20% للشاشات الكبيرة
+    } else if (width >= 1024) {
+      fontSize = Math.min(fontSize * 1.1, maxFontSize); // زيادة 10% للشاشات المتوسطة الكبيرة
+    }
+
+    // تعديل إضافي بناءً على نسبة الشاشة
+    const screenRatio = width / height;
+    if (screenRatio > 1.5) {
+      // شاشات عريضة: تقليل حجم الخط قليلاً
+      fontSize *= 0.9;
+    } else if (screenRatio < 1) {
+      // شاشات طويلة (مثل الموبايل): زيادة حجم الخط قليلاً
+      fontSize *= 1.1;
+    }
+
+    // التأكد من أن حجم الخط ضمن الحدود
+    return Math.round(Math.max(minFontSize, Math.min(fontSize, maxFontSize)));
   };
 
   const fuse = useMemo(() => {
@@ -277,6 +325,16 @@ export default function HeroSection() {
       }
     };
     loadData();
+  }, []);
+
+  useEffect(() => {
+    const updateWindowSize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+
+    updateWindowSize();
+    window.addEventListener("resize", updateWindowSize);
+    return () => window.removeEventListener("resize", updateWindowSize);
   }, []);
 
   const performSearch = useCallback(
@@ -525,34 +583,34 @@ export default function HeroSection() {
   };
 
   const formatContent = useCallback((item: Song) => {
-  if (!item) return [];
+    if (!item) return [];
 
-  let content: string[] = [];
+    let content: string[] = [];
 
-  // إضافة الكورس إذا كان موجودًا وكان chorusFirst، ثم الأبيات
-  if (item.chorusFirst && item.chorus) {
-    content.push(...item.chorus);
-  }
+    // إضافة الكورس إذا كان موجودًا وكان chorusFirst، ثم الأبيات
+    if (item.chorusFirst && item.chorus) {
+      content.push(...item.chorus);
+    }
 
-  // إضافة الأبيات إذا وجدت
-  if (item.verses && item.verses.length > 0) {
-    item.verses.forEach((verse, idx) => {
-      content.push(...verse);
-      if (item.chorus && !item.chorusFirst && idx < item.verses.length - 1) {
-        content.push(...item.chorus); // إضافة الكورس بين الأبيات إذا لم يكن chorusFirst
-      }
-    });
-  }
-  // إضافة الكورس في النهاية إذا لم يتم إضافته مسبقًا وكان موجودًا
-  else if (item.chorus && item.chorus.length > 0) {
-    content.push(...item.chorus);
-  }
+    // إضافة الأبيات إذا وجدت
+    if (item.verses && item.verses.length > 0) {
+      item.verses.forEach((verse, idx) => {
+        content.push(...verse);
+        if (item.chorus && !item.chorusFirst && idx < item.verses.length - 1) {
+          content.push(...item.chorus); // إضافة الكورس بين الأبيات إذا لم يكن chorusFirst
+        }
+      });
+    }
+    // إضافة الكورس في النهاية إذا لم يتم إضافته مسبقًا وكان موجودًا
+    else if (item.chorus && item.chorus.length > 0) {
+      content.push(...item.chorus);
+    }
 
-  // إضافة الإيقونة في النهاية
-  content.push("SITE_ICON_SLIDE");
+    // إضافة الإيقونة في النهاية
+    content.push("SITE_ICON_SLIDE");
 
-  return content;
-}, []);
+    return content;
+  }, []);
 
   const handleNextSlide = useCallback(() => {
     if (!selectedItem) return;
