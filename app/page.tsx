@@ -52,7 +52,7 @@ export default function Home() {
     { id: "audio-bible", label: "الكتاب المقدس المسموع", component: <AudioBible /> },
     { id: "add-lecture", label: "إضافة محاضرة", component: <AddLecture /> },
     { id: "attendance-record", label: "تسجيل الحضور", component: <AttendanceRecord /> },
-    { id: "powerpoint-section", label: "عروض تقديمية", component: <PowerPointSection /> },
+    { id: "powerpoint-section", label: "الكنيسة الارثوذوكسية", component: <PowerPointSection /> },
   //  { id: "competitions-section", label: "المسابقات", component: <CompetitionsSection /> },
     { id: "daily-verse", label: "آية اليوم", component: <DailyVerse /> },
   ];
