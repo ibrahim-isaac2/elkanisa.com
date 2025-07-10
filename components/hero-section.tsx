@@ -215,7 +215,7 @@ export default function HeroSection() {
   const [imagePositionX, setImagePositionX] = useState(50);
   const [imagePositionY, setImagePositionY] = useState(50);
   const [imageSize, setImageSize] = useState(50);
-  const [slideTransition, setSlideTransition] = useState<string>("fade");
+  const [slideTransition, setSlideTransition] = useState<string>("none");
 
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
@@ -730,12 +730,14 @@ export default function HeroSection() {
           initial: { opacity: 0 },
           animate: { opacity: 1 },
           exit: { opacity: 0 },
+          transition: { duration: 0.1, ease: "easeOut" },
         };
       case "slide":
         return {
           initial: { x: 100, opacity: 0 },
           animate: { x: 0, opacity: 1 },
           exit: { x: -100, opacity: 0 },
+          transition: { duration: 0.1, ease: "easeOut" },
         };
       case "none":
       default:
@@ -743,6 +745,7 @@ export default function HeroSection() {
           initial: { opacity: 1 },
           animate: { opacity: 1 },
           exit: { opacity: 1 },
+          transition: { duration: 0 },
         };
     }
   };
@@ -869,21 +872,22 @@ export default function HeroSection() {
                     return (
                       <div
                         key={index}
-                        className="w-full text-right px-4 sm:px-6 py-4 hover:bg-muted text-foreground transition-colors duration-200 border-b border-border last:border-b-0"
+                        className="w-full text-right px-4 sm:px-6 py-4 hover:bg-muted text-foreground transition-colors duration-200 border-b border-border last:border-b-0 cursor-pointer"
+                        onClick={() => handleItemSelect(item)}
                       >
                         <div className="flex justify-between items-center">
-                          <button
-                            className="flex-1 text-right font-semibold"
-                            onClick={() => handleItemSelect(item)}
-                          >
+                          <span className="flex-1 text-right font-semibold">
                             {item.title}
-                          </button>
+                          </span>
                           <div className="flex gap-2">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <button
-                                    onClick={() => togglePlaylist(item.title)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      togglePlaylist(item.title);
+                                    }}
                                     className="p-2 rounded-full hover:bg-muted"
                                   >
                                     <PlusCircle
@@ -903,7 +907,10 @@ export default function HeroSection() {
                               </Tooltip>
                             </TooltipProvider>
                             <button
-                              onClick={() => toggleFavorite(item.title)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorite(item.title);
+                              }}
                               className="p-2 rounded-full hover:bg-muted"
                             >
                               <Heart
@@ -945,21 +952,22 @@ export default function HeroSection() {
                   return (
                     <Card
                       key={index}
-                      className="overflow-hidden hover:shadow-md transition-all"
+                      className="overflow-hidden hover:shadow-md transition-all cursor-pointer"
+                      onClick={() => handleItemSelect(song)}
                     >
                       <CardContent className="p-4 flex justify-between items-center">
-                        <button
-                          className="flex-1 text-right font-semibold"
-                          onClick={() => handleItemSelect(song)}
-                        >
+                        <span className="flex-1 text-right font-semibold">
                           {title}
-                        </button>
+                        </span>
                         <div className="flex gap-2">
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <button
-                                  onClick={() => togglePlaylist(song.title)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    togglePlaylist(song.title);
+                                  }}
                                   className="p-2 rounded-full hover:bg-muted"
                                 >
                                   <PlusCircle
@@ -979,7 +987,10 @@ export default function HeroSection() {
                             </Tooltip>
                           </TooltipProvider>
                           <button
-                            onClick={() => toggleFavorite(title)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavorite(title);
+                            }}
                             className="p-2 rounded-full hover:bg-muted"
                           >
                             <Heart className="h-5 w-5 fill-red-500 text-red-500" />
@@ -1006,18 +1017,19 @@ export default function HeroSection() {
                   return (
                     <Card
                       key={index}
-                      className="overflow-hidden hover:shadow-md transition-all"
+                      className="overflow-hidden hover:shadow-md transition-all cursor-pointer"
+                      onClick={() => handleItemSelect(song)}
                     >
                       <CardContent className="p-4 flex justify-between items-center">
-                        <button
-                          className="flex-1 text-right font-semibold"
-                          onClick={() => handleItemSelect(song)}
-                        >
+                        <span className="flex-1 text-right font-semibold">
                           {title}
-                        </button>
+                        </span>
                         <div className="flex gap-2">
                           <button
-                            onClick={() => togglePlaylist(title)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              togglePlaylist(title);
+                            }}
                             className="p-2 rounded-full hover:bg-muted"
                           >
                             <X className="h-5 w-5 text-muted-foreground" />
@@ -1037,6 +1049,7 @@ export default function HeroSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0 }}
             className={`fixed inset-0 z-50 flex items-center justify-center ${
               currentTheme.isCustom ? "" : currentTheme.background
             }`}
@@ -1077,7 +1090,6 @@ export default function HeroSection() {
             <motion.div
               key={currentSlide}
               {...getTransitionVariants()}
-              transition={{ duration: 0.3, ease: "easeOut" }}
               className="relative w-full h-full flex items-center justify-center z-20"
             >
               {selectedItem ? (
@@ -1094,7 +1106,7 @@ export default function HeroSection() {
                   ) : (
                     <div className="text-center px-4 sm:px-8 w-full h-full flex items-center justify-center">
                       <p
-                        className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
+                        className={`${currentTextColor.class} leading-relaxed whitespace-pre-line max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center`}
                         style={{
                           fontSize: `${
                             formatContent(selectedItem)[currentSlide]
@@ -1102,7 +1114,7 @@ export default function HeroSection() {
                               : globalFontSize
                           }px`,
                           fontFamily: '"Noto Sans Arabic", sans-serif',
-                          fontWeight: 900,
+                          fontWeight: 600,
                           direction: 'rtl',
                           textAlign: 'center',
                         }}
@@ -1125,11 +1137,11 @@ export default function HeroSection() {
                       ) : (
                         <p
                           key={index}
-                          className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line mb-8 max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
+                          className={`${currentTextColor.class} leading-relaxed whitespace-pre-line mb-8 max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center`}
                           style={{
                             fontSize: `${calculateDynamicFontSize(content)}px`,
                             fontFamily: '"Noto Sans Arabic", sans-serif',
-                            fontWeight: 900,
+                            fontWeight: 600,
                             direction: 'rtl',
                             textAlign: 'center',
                           }}
@@ -1143,11 +1155,11 @@ export default function HeroSection() {
               ) : (
                 <div className="text-center px-4 sm:px-8 w-full h-full flex items-center justify-center">
                   <p
-                    className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
+                    className={`${currentTextColor.class} leading-relaxed whitespace-pre-line max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center`}
                     style={{
                       fontSize: `${globalFontSize}px`,
                       fontFamily: '"Noto Sans Arabic", sans-serif',
-                      fontWeight: 900,
+                      fontWeight: 600,
                       direction: 'rtl',
                       textAlign: 'center',
                     }}
