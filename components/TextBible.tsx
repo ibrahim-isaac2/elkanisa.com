@@ -370,10 +370,10 @@ export default function TextBible() {
           books: section.books.map(book => ({
             ...book,
             name: book.name.trim(), // Trim book name
-            // chapters: book.chapters.map(ch => ({ // Assuming chapters and verses don't need trimming for now
-            //   ...ch,
-            //   verses: ch.verses.map(v => ({...v, text: v.text.trim() })) 
-            // }))
+            chapters: book.chapters.map(ch => ({
+              ...ch,
+              verses: ch.verses.map(v => ({...v, text: v.text.trim()}))
+            }))
           }))
         }));
         setBibleData(processedData); // Store the fully processed data
@@ -560,7 +560,8 @@ export default function TextBible() {
     // setSearchQuery(""); 
   }, [setSelectedBook, setSelectedChapter, setVerseSearchResults]);
 
-  const removeArabicDiacritics = (text: string): string => {    return text
+  const removeArabicDiacritics = (text: string): string => {    
+      return text
       .normalize("NFD")
       .replace(/[\u0610-\u061A\u064B-\u065F]/g, "")
       .normalize("NFC");
@@ -838,14 +839,54 @@ export default function TextBible() {
     setShowSettings(false);
   };
 
-  const calculateDynamicFontSize = (text: string) => {
+  const calculateDynamicFontSize = (text: string, maxWidth: number, maxHeight: number) => {
     const textLength = text.length;
     const baseFontSize = globalFontSize;
     const minFontSize = 20;
     const maxFontSize = 96;
-    if (textLength < 50) return Math.min(baseFontSize * 1.2, maxFontSize);
-    else if (textLength > 200) return Math.max(baseFontSize * 0.8, minFontSize);
-    return baseFontSize;
+
+    // تحديد الحد الأقصى للحجم بناءً على طول النص
+    let adjustedFontSize = baseFontSize;
+    if (textLength < 50) {
+      adjustedFontSize = Math.min(baseFontSize * 1.2, maxFontSize);
+    } else if (textLength > 200) {
+      adjustedFontSize = Math.max(baseFontSize * 0.6, minFontSize);
+    } else {
+      adjustedFontSize = baseFontSize * (1 - (textLength - 50) / 150 * 0.4);
+    }
+
+    // التأكد من أن النص يتناسب داخل الشريحة
+    const container = document.querySelector(".slide-container") as HTMLElement | null;
+    if (container) {
+      const containerWidth = container.offsetWidth * 0.9; // 90% of container width
+      const containerHeight = container.offsetHeight * 0.9; // 90% of container height
+      const tempElement = document.createElement("div");
+      tempElement.style.fontSize = `${adjustedFontSize}px`;
+      tempElement.style.fontFamily = '"Noto Sans Arabic", sans-serif';
+      tempElement.style.fontWeight = "900";
+      tempElement.style.position = "absolute";
+      tempElement.style.visibility = "hidden";
+      tempElement.style.whiteSpace = "pre-wrap";
+      tempElement.textContent = text;
+      document.body.appendChild(tempElement);
+
+      let height = tempElement.offsetHeight;
+      let width = tempElement.offsetWidth;
+
+      document.body.removeChild(tempElement);
+
+      // تقليل الحجم إذا كان النص يتجاوز الحدود
+      while ((width > containerWidth || height > containerHeight) && adjustedFontSize > minFontSize) {
+        adjustedFontSize -= 2;
+        tempElement.style.fontSize = `${adjustedFontSize}px`;
+        height = tempElement.offsetHeight;
+        width = tempElement.offsetWidth;
+      }
+
+      return Math.max(adjustedFontSize, minFontSize);
+    }
+
+    return Math.max(adjustedFontSize, minFontSize);
   };
 
   return (
@@ -1240,7 +1281,7 @@ export default function TextBible() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="relative w-full h-full flex items-center justify-center z-20"
+              className="relative w-full h-full flex items-center justify-center z-20 slide-container"
             >
               {chapterText.length > 0 ? (
                 displayMode === "slides" ? (
@@ -1250,7 +1291,7 @@ export default function TextBible() {
                       style={{
                         fontSize: `${
                           chapterText[currentSlide]
-                            ? calculateDynamicFontSize(chapterText[currentSlide])
+                            ? calculateDynamicFontSize(chapterText[currentSlide], window.innerWidth * 0.9, window.innerHeight * 0.9)
                             : globalFontSize
                         }px`,
                         lineHeight: `${lineSpacing}`,
@@ -1268,7 +1309,7 @@ export default function TextBible() {
                         key={index}
                         className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text mb-8 max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
                         style={{
-                          fontSize: `${calculateDynamicFontSize(text)}px`,
+                          fontSize: `${calculateDynamicFontSize(text, window.innerWidth * 0.9, window.innerHeight * 0.9)}px`,
                           lineHeight: `${lineSpacing}`,
                           fontFamily: '"Noto Sans Arabic", sans-serif',
                           fontWeight: 900,
@@ -1723,60 +1764,15 @@ export default function TextBible() {
                         <Download className="h-6 w-6" />
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent>تنزيل النص</TooltipContent>
+                    <TooltipContent>
+                      تنزيل النص
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
             </div>
-
-            {displayMode === "slides" && (
-              <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 sm:gap-6 z-30">
-                <button
-                  onClick={previousSlide}
-                  className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
-                    currentSlide === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-white/20"
-                  }`}
-                  disabled={currentSlide === 0}
-                  aria-label="الشريحة السابقة"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-
-                <span className="text-white font-semibold">
-                  {chapterText.length > 0 ? `${currentSlide + 1} / ${chapterText.length}` : "0 / 0"}
-                </span>
-
-                <button
-                  onClick={nextSlide}
-                  className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
-                    currentSlide === chapterText.length - 1
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-white/20"
-                  }`}
-                  disabled={currentSlide === chapterText.length - 1}
-                  aria-label="الشريحة التالية"
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </button>
-              </div>
-            )}
           </motion.div>
         </AnimatePresence>
-      )}
-
-      {error && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-card p-6 rounded-xl shadow-2xl max-w-md">
-            <h3 className="text-xl font-bold text-destructive mb-4">خطا</h3>
-            <p className="text-foreground">{error}</p>
-            <Button
-              className="mt-4 w-full bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-              onClick={() => setError(null)}
-            >
-              اغلاق
-            </Button>
-          </div>
-        </div>
       )}
     </div>
   );
