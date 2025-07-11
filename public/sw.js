@@ -1,7 +1,5 @@
-importScripts("https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js" );
-import { cacheAllMedia } from "./offline-cache.ts";
+importScripts("https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js");
 
-// تحديث Workbox ليتعامل مع التخزين المؤقت بشكل أفضل
 workbox.core.setCacheNameDetails({
   prefix: "elkanisa",
   suffix: "v1",
@@ -9,105 +7,157 @@ workbox.core.setCacheNameDetails({
   runtime: "runtime-cache",
 });
 
-// حدث التثبيت لتخزين ملفات الصوت والفيديو
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    cacheAllMedia(
-      "https://pub-d84ec872e0d940018b402da80d54a407.r2.dev", // رابط الصوتيات
-      "https://pub-daf4aa025299493f8f6634fe32b8754b.r2.dev"  // رابط الفيديوهات (تم تعديل الرابط ليكون صحيحًا )
-    )
-  );
-});
-
-// تخزين الملفات الرئيسية أثناء التثبيت
+// Precache الملفات الأساسية لتشغيل الموقع دون إنترنت
 workbox.precaching.precacheAndRoute([
-  { url: "/", revision: "2" }, // تم تحديث رقم المراجعة
-  { url: "/_next/static/chunks/main.js", revision: "2" },
-  { url: "/_next/static/chunks/webpack.js", revision: "2" },
-  { url: "/_next/static/css/main.css", revision: "2" },
-  { url: "/manifest.json", revision: "2" },
-  { url: "/icon-192x192.png", revision: "2" },
-  { url: "/icon-512x512.png", revision: "2" },
-  { url: "/offline.html", revision: "2" },
-  { url: "/end.png", revision: "2" },
-  // إضافة مسارات أخرى مهمة للصفحة الرئيسية هنا إذا كانت ثابتة
-]);
+  { url: "/", revision: "20250711" },
+  { url: "/manifest.json", revision: "20250711" },
+  { url: "/icon-192x192.png", revision: "20250711" },
+  { url: "/icon-512x512.png", revision: "20250711" },
+  { url: "/icon.png", revision: "20250711" },
+  { url: "/offline.html", revision: "20250711" },
+  { url: "/end.png", revision: "20250711" },
+  { url: "/myfooter.jpg", revision: "20250711" },
+  { url: "/BM.png", revision: "20250711" },
+  { url: "/placeholder-logo.png", revision: "20250711" },
+  { url: "/placeholder-logo.svg", revision: "20250711" },
+  { url: "/placeholder-user.jpg", revision: "20250711" },
+  { url: "/placeholder.jpg", revision: "20250711" },
+  { url: "/placeholder.svg", revision: "20250711" },
+  { url: "/screenshot-narrow.png", revision: "20250711" },
+  { url: "/screenshot-wide.png", revision: "20250711" },
+  { url: "/songs.json", revision: "20250711" },
+  { url: "/hymns.json", revision: "20250711" },
+  { url: "/bible.json", revision: "20250711" },
+  { url: "/bible_arabic_full.json", revision: "20250711" },
+  { url: "/add-hymn.json", revision: "20250711" },
+  { url: "/files.json", revision: "20250711" },
+  { url: "/sw.js", revision: "20250711" },
+  { url: "/globals.css", revision: "20250711" },
+  // مكونات من app/
+  { url: "/_next/static/chunks/pages/layout.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/index.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/_app.js", revision: "20250711" },
+  { url: "/_next/static/chunks/main.js", revision: "20250711" },
+  { url: "/_next/static/chunks/webpack.js", revision: "20250711" },
+  // مكونات من components/
+  { url: "/_next/static/chunks/pages/add-hymn.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/add-lecture.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/attendance-record.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/audio-bible.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/ChatBot.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/CompetitionsSection.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/DailyVerse.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/footer.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/header.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/hero-section.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/install-button.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/PowerPointSection.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/SectionHandler.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/sections_component.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/seo_songs_component.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/seo_wrapper.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/TextBible.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/theme-provider.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/theme-toggle.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/word-and-melody-hymns.js", revision: "20250711" },
+  // مكونات UI من components/ui/
+  { url: "/_next/static/chunks/pages/accordion.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/alert-dialog.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/alert.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/aspect-ratio.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/avatar.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/badge.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/breadcrumb.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/button.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/calendar.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/card.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/carousel.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/chart.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/checkbox.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/collapsible.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/command.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/context-menu.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/dialog.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/drawer.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/dropdown-menu.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/form.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/hover-card.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/input-otp.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/input.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/label.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/menubar.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/navigation-menu.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/pagination.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/popover.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/progress.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/radio-group.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/resizable.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/scroll-area.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/select.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/separator.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/sheet.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/sidebar.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/skeleton.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/slider.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/sonner.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/switch.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/table.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/tabs.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/textarea.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/toast.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/toaster.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/toggle-group.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/toggle.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/tooltip.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/use-mobile.js", revision: "20250711" },
+  { url: "/_next/static/chunks/pages/use-toast.js", revision: "20250711" },
+  // كاش لملفات JSON من raw.githubusercontent.com
+  workbox.routing.registerRoute(
+    ({ url }) => url.href.includes("raw.githubusercontent.com"),
+    new workbox.strategies.NetworkFirst({
+      cacheName: "json-files",
+      plugins: [
+        new workbox.cacheableResponse.CacheableResponsePlugin({
+          statuses: [0, 200],
+        }),
+      ],
+    })
+  );
 
-// كاش لملفات JSON من raw.githubusercontent.com (استراتيجية NetworkFirst لتحميل أحدث البيانات أولاً)
-workbox.routing.registerRoute(
-  ({ url }) => url.href.includes("raw.githubusercontent.com"),
-  new workbox.strategies.NetworkFirst({
-    cacheName: "json-files",
-    plugins: [
-      new workbox.expiration.ExpirationPlugin({
-        maxEntries: 50, // تخزين 50 إدخال كحد أقصى
-        maxAgeSeconds: 7 * 24 * 60 * 60, // تخزين لمدة أسبوع
-      }),
-      new workbox.cacheableResponse.CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-    ],
-  })
-);
+  // ملفات الصوتيات والفيديوهات (NetworkOnly)
+  workbox.routing.registerRoute(
+    ({ url }) =>
+      url.href.includes("pub-d84ec872e0d940018b402da80d54a407.r2.dev") ||
+      url.href.includes("pub-daf4aa025299493f8f6634fe32b8754b.r2.dev"),
+    new workbox.strategies.NetworkOnly()
+  );
 
-// كاش لملفات الصوتيات من R2 (استراتيجية CacheFirst)
-workbox.routing.registerRoute(
-  ({ url }) => url.href.includes("pub-d84ec872e0d940018b402da80d54a407.r2.dev"),
-  new workbox.strategies.CacheFirst({
-    cacheName: "audio-files",
-    plugins: [
-      new workbox.expiration.ExpirationPlugin({
-        maxEntries: 200, // تخزين 200 إدخال كحد أقصى
-        maxAgeSeconds: 30 * 24 * 60 * 60, // تخزين لمدة شهر
-      }),
-      new workbox.cacheableResponse.CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-    ],
-  })
-);
+  // قسم الكنيسة الأرثوذكسية (NetworkOnly)
+  workbox.routing.registerRoute(
+    ({ url }) => url.pathname.includes("/orthodox-section"),
+    new workbox.strategies.NetworkOnly()
+  );
 
-// كاش لملفات الفيديوهات من R2 (استراتيجية CacheFirst)
-workbox.routing.registerRoute(
-  ({ url }) => url.href.includes("pub-daf4aa025299493f8f6634fe32b8754b.r2.dev"),
-  new workbox.strategies.CacheFirst({
-    cacheName: "video-files",
-    plugins: [
-      new workbox.expiration.ExpirationPlugin({
-        maxEntries: 100, // تخزين 100 إدخال كحد أقصى
-        maxAgeSeconds: 30 * 24 * 60 * 60, // تخزين لمدة شهر
-      }),
-      new workbox.cacheableResponse.CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-    ],
-  })
-);
+  // كاش لمحتوى الموقع الأساسي
+  workbox.routing.registerRoute(
+    ({ url }) => url.origin === self.location.origin,
+    new workbox.strategies.StaleWhileRevalidate({
+      cacheName: "site-content",
+      plugins: [
+        new workbox.cacheableResponse.CacheableResponsePlugin({
+          statuses: [0, 200],
+        }),
+      ],
+    })
+  );
 
-// كاش لمحتوى الموقع (استراتيجية NetworkFirst)
-workbox.routing.registerRoute(
-  ({ url }) => url.origin === self.location.origin,
-  new workbox.strategies.NetworkFirst({
-    cacheName: "site-content",
-    plugins: [
-      new workbox.expiration.ExpirationPlugin({
-        maxEntries: 100, // تخزين 100 إدخال كحد أقصى
-        maxAgeSeconds: 7 * 24 * 60 * 60, // تخزين لمدة أسبوع
-      }),
-      new workbox.cacheableResponse.CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-    ],
-  })
-);
+  // التعامل مع الطلبات الفاشلة
+  workbox.routing.setCatchHandler(async ({ event }) => {
+    if (event.request.mode === "navigate") {
+      return caches.match("/offline.html");
+    }
+    return Response.error();
+  });
 
-// التعامل مع الطلبات الفاشلة (fallback to offline.html)
-workbox.routing.setCatchHandler(async ({ event }) => {
-  if (event.request.mode === "navigate") {
-    return caches.match("/offline.html");
-  }
-  return Response.error();
-});
-
-workbox.core.skipWaiting();
-workbox.core.clientsClaim();
+  workbox.core.skipWaiting();
+  workbox.core.clientsClaim();
