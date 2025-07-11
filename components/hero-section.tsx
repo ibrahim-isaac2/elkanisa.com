@@ -194,9 +194,9 @@ export default function HeroSection() {
   const [globalFontSize, setGlobalFontSize] = useState(() => {
     if (typeof window !== "undefined") {
       const savedFontSize = localStorage.getItem("globalFontSize");
-      return savedFontSize ? parseInt(savedFontSize, 10) : 72;
+      return savedFontSize ? parseInt(savedFontSize, 10) : 86;
     }
-    return 72;
+    return 86;
   });
   const [watermark, setWatermark] = useState("");
   const [watermarkColor, setWatermarkColor] = useState(textColors[0]);
@@ -235,8 +235,8 @@ export default function HeroSection() {
     const baseFontSize = globalFontSize;
 
     // الحدود الافتراضية بناءً على حجم الشاشة
-    let minFontSize = 16;
-    let maxFontSize = 120;
+    let minFontSize = 24;
+    let maxFontSize = 150;
 
     // تعديل الحدود بناءً على حجم الشاشة
     if (width < 640) {
