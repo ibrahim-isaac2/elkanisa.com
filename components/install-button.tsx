@@ -6,15 +6,14 @@ import { useEffect, useState } from "react";
 
 export default function InstallButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
-  const [isSupported, setIsSupported] = useState(false);
   const [isPwaInstalled, setIsPwaInstalled] = useState(false);
 
   useEffect(() => {
     console.log("InstallButton: Component mounted.");
 
-    // Check if the app is already installed (running in standalone mode)
+    // التحقق إذا كان التطبيق مثبت بالفعل
     if (window.matchMedia('(display-mode: standalone)').matches) {
-      console.log("InstallButton: App is already installed and running in standalone mode.");
+      console.log("InstallButton: App is already installed.");
       setIsPwaInstalled(true);
       return;
     }
@@ -24,27 +23,15 @@ export default function InstallButton() {
       console.log("InstallButton: beforeinstallprompt event fired!");
       e.preventDefault();
       setDeferredPrompt(e);
-      setIsSupported(true);
     };
 
-    // Handler for appinstalled event
     const appInstalledHandler = () => {
       console.log("InstallButton: App was successfully installed!");
       setIsPwaInstalled(true);
       setDeferredPrompt(null);
-      setIsSupported(false);
     };
 
-    // Check if the browser supports beforeinstallprompt
-    if ("BeforeInstallPromptEvent" in window) {
-      console.log("InstallButton: beforeinstallprompt event is supported.");
-      window.addEventListener("beforeinstallprompt", handler);
-    } else {
-      console.log("InstallButton: beforeinstallprompt event not supported in this browser.");
-      setIsSupported(true); // Show button but handle unsupported case in click
-    }
-
-    // Listen for appinstalled event to confirm installation
+    window.addEventListener("beforeinstallprompt", handler);
     window.addEventListener("appinstalled", appInstalledHandler);
 
     return () => {
@@ -56,19 +43,16 @@ export default function InstallButton() {
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
       console.log("InstallButton: No deferred prompt available.");
-      // Detect browser and device for tailored instructions
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      let message = "من فضلك انتظر لحظات وبعدين اضغط تثبيت او طريقة اخرى انك بعد ما تنتظهر ولم تظهر  خانة التثبيت لك. اضغط علي الثلاث نقاط الموجودين في المتصفح واضغط علي اضافة الي الشاشة وانتظر كلمة تثبيت لكي تتمكن من التثبيت بنجاح";
+      let message = "اضغط على الثلاث نقاط في المتصفح واختر 'إضافة إلى الشاشة الرئيسية'.";
       
-      if (!("BeforeInstallPromptEvent" in window)) {
-        if (isIOS && isSafari) {
-          message = "لتثبيت التطبيق على iOS، اضغط على أيقونة المشاركة في Safari ثم اختر 'إضافة إلى الشاشة الرئيسية'.";
-        } else {
-          message = "هذا المتصفح لا يدعم التثبيت التلقائي. جرب استخدام متصفح Chrome أو Edge.";
-        }
+      if (isIOS && isSafari) {
+        message = "اضغط على أيقونة المشاركة في Safari ثم اختر 'إضافة إلى الشاشة الرئيسية'.";
+      } else if (!("BeforeInstallPromptEvent" in window)) {
+        message = "هذا المتصفح لا يدعم التثبيت التلقائي. جرب Chrome أو Edge.";
       }
-
+      
       alert(message);
       return;
     }
@@ -84,7 +68,7 @@ export default function InstallButton() {
       }
     } catch (error) {
       console.error("InstallButton: Error during prompt:", error);
-      alert("حدث خطأ أثناء محاولة التثبيت. حاول مرة أخرى لاحقًا.");
+      alert("حدث خطأ أثناء التثبيت. حاول مرة أخرى.");
     } finally {
       setDeferredPrompt(null);
     }
@@ -93,13 +77,13 @@ export default function InstallButton() {
   return (
     <div>
       {isPwaInstalled ? (
-        <p className="fixed top-4 left-4 text-white">
+        <p className="fixed top-4 left-4 text-white font-bold">
           التطبيق مثبت بالفعل!
         </p>
       ) : (
         <Button
           variant="outline"
-          className="fixed top-4 left-4 gap-2"
+          className="fixed top-4 left-4 gap-2 font-bold"
           onClick={handleInstallClick}
         >
           <Download className="w-4 h-4" />
