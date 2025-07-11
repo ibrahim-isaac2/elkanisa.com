@@ -48,8 +48,8 @@ export default function Home() {
 
   // قائمة الأقسام لشريط التنقل
   const sections = [
-    { id: "word-and-melody-hymns", label: "'انترنت'ترانيم كلمة ولحن", component: <WordAndMelodyHymns /> },
-    { id: "audio-bible", label: "الكتاب المقدس المسموع", component: <AudioBible /> },
+    { id: "word-and-melody-hymns", label: "ترانيم كلمة ولحن *انترنت* ", component: <WordAndMelodyHymns /> },
+    { id: "audio-bible", label: "الكتاب المقدس المسموع *انترنت* ", component: <AudioBible /> },
     { id: "add-lecture", label: "إضافة محاضرة", component: <AddLecture /> },
     { id: "attendance-record", label: "تسجيل الحضور", component: <AttendanceRecord /> },
     { id: "powerpoint-section", label: "الكنيسة الارثوذوكسية", component: <PowerPointSection /> },
