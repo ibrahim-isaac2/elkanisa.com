@@ -1,73 +1,74 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, X, Plus, Minus, Settings, Palette, Type, Copyright, Upload, Download } from "lucide-react";
+import type React from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Slider } from "@/components/ui/slider"
+import { Switch } from "@/components/ui/switch"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { X, Plus, Minus, Settings, Palette, Type, Copyright, Upload, Download } from "lucide-react"
 
 type Theme = {
-  name: string;
-  background: string;
-  text: string;
-  isCustom?: boolean;
-  customUrl?: string;
-};
+  name: string
+  background: string
+  text: string
+  isCustom?: boolean
+  customUrl?: string
+}
 
 export default function AddHymn() {
   // Hymn data states
-  const [title, setTitle] = useState("");
-  const [slides, setSlides] = useState<string[]>([]);
-  const [slideCount, setSlideCount] = useState(1);
-  const [currentStep, setCurrentStep] = useState(1);
+  const [title, setTitle] = useState("")
+  const [slides, setSlides] = useState<string[]>([])
+  const [slideCount, setSlideCount] = useState(1)
+  const [currentStep, setCurrentStep] = useState(1)
 
   // Display states
-  const [showFullScreen, setShowFullScreen] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [showSettings, setShowSettings] = useState(false);
-  const [activeTab, setActiveTab] = useState("theme");
+  const [showFullScreen, setShowFullScreen] = useState(false)
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [showSettings, setShowSettings] = useState(false)
+  const [activeTab, setActiveTab] = useState("theme")
 
   // Touch handling states for swipe
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
+  const [touchEndX, setTouchEndX] = useState<number | null>(null)
 
   // Refs
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const autoAdvanceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const autoAdvanceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Display settings aligned with hero-section.tsx
   const [currentTheme, setCurrentTheme] = useState<Theme>({
     name: "افتراضي",
     background: "bg-black",
     text: "text-white",
-  });
-  const [customThemes, setCustomThemes] = useState<Theme[]>([]);
-  const [currentTextColor, setCurrentTextColor] = useState({ name: "أبيض", class: "text-white" });
+  })
+  const [customThemes, setCustomThemes] = useState<Theme[]>([])
+  const [currentTextColor, setCurrentTextColor] = useState({ name: "أبيض", class: "text-white" })
   const [globalFontSize, setGlobalFontSize] = useState(() => {
     if (typeof window !== "undefined") {
-      const savedFontSize = localStorage.getItem("globalFontSize");
-      return savedFontSize ? parseInt(savedFontSize, 10) : 72;
+      const savedFontSize = localStorage.getItem("globalFontSize")
+      return savedFontSize ? Number.parseInt(savedFontSize, 10) : 72
     }
-    return 72;
-  });
-  const [watermark, setWatermark] = useState("");
-  const [watermarkColor, setWatermarkColor] = useState({ name: "أبيض", class: "text-white" });
-  const [watermarkFontSize, setWatermarkFontSize] = useState(20);
-  const [autoAdvance, setAutoAdvance] = useState(false);
-  const [autoAdvanceInterval, setAutoAdvanceInterval] = useState(10);
-  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
-  const [imagePositionX, setImagePositionX] = useState(50);
-  const [imagePositionY, setImagePositionY] = useState(50);
-  const [imageSize, setImageSize] = useState(50);
-  const [slideTransition, setSlideTransition] = useState<string>("none");
+    return 72
+  })
+  const [watermark, setWatermark] = useState("")
+  const [watermarkColor, setWatermarkColor] = useState({ name: "أبيض", class: "text-white" })
+  const [watermarkFontSize, setWatermarkFontSize] = useState(20)
+  const [autoAdvance, setAutoAdvance] = useState(false)
+  const [autoAdvanceInterval, setAutoAdvanceInterval] = useState(10)
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null)
+  const [imagePositionX, setImagePositionX] = useState(50)
+  const [imagePositionY, setImagePositionY] = useState(50)
+  const [imageSize, setImageSize] = useState(50)
+  const [slideTransition, setSlideTransition] = useState<string>("none")
 
   // Themes and colors aligned with hero-section.tsx
   const themes: Theme[] = [
@@ -81,7 +82,7 @@ export default function AddHymn() {
     { name: "أحمر داكن", background: "bg-gradient-to-br from-red-800 to-red-950", text: "text-white" },
     { name: "برتقالي داكن", background: "bg-gradient-to-br from-orange-800 to-orange-950", text: "text-white" },
     { name: "أصفر فاتح", background: "bg-gradient-to-br from-yellow-50 to-yellow-200", text: "text-yellow-900" },
-  ];
+  ]
 
   const textColors = [
     { name: "أبيض", class: "text-white" },
@@ -92,118 +93,149 @@ export default function AddHymn() {
     { name: "أصفر", class: "text-yellow-500" },
     { name: "برتقالي", class: "text-orange-500" },
     { name: "بنفسجي", class: "text-purple-500" },
-  ];
+  ]
 
   const transitionOptions = [
     { name: "تلاشي", value: "fade" },
     { name: "انزلاق", value: "slide" },
     { name: "بدون تأثير", value: "none" },
-  ];
+  ]
+
+  // Font size control functions
+  const increaseFontSize = useCallback(() => {
+    setGlobalFontSize((prev) => {
+      const newSize = Math.min(prev + 4, 120)
+      if (typeof window !== "undefined") {
+        localStorage.setItem("globalFontSize", newSize.toString())
+      }
+      return newSize
+    })
+  }, [])
+
+  const decreaseFontSize = useCallback(() => {
+    setGlobalFontSize((prev) => {
+      const newSize = Math.max(prev - 4, 20)
+      if (typeof window !== "undefined") {
+        localStorage.setItem("globalFontSize", newSize.toString())
+      }
+      return newSize
+    })
+  }, [])
 
   // Initialize slides array when slideCount changes
   useEffect(() => {
     if (currentStep === 1) {
-      setSlides(Array(slideCount).fill(""));
+      setSlides(Array(slideCount).fill(""))
     }
-  }, [slideCount, currentStep]);
+  }, [slideCount, currentStep])
 
   // Handle slide navigation
   const handleNextSlide = useCallback(() => {
     if (currentSlide < slides.length - 1) {
-      setCurrentSlide((prev) => prev + 1);
+      setCurrentSlide((prev) => prev + 1)
     }
-  }, [currentSlide, slides.length]);
+  }, [currentSlide, slides.length])
 
   const handlePrevSlide = useCallback(() => {
     if (currentSlide > 0) {
-      setCurrentSlide((prev) => prev - 1);
+      setCurrentSlide((prev) => prev - 1)
     }
-  }, [currentSlide]);
+  }, [currentSlide])
 
   // Handle touch swipe
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartX(e.targetTouches[0].clientX);
-    setTouchEndX(null);
-  };
+    setTouchStartX(e.targetTouches[0].clientX)
+    setTouchEndX(null)
+  }
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEndX(e.targetTouches[0].clientX);
-  };
+    setTouchEndX(e.targetTouches[0].clientX)
+  }
 
   const handleTouchEnd = () => {
-    if (!touchStartX || !touchEndX) return;
+    if (!touchStartX || !touchEndX) return
 
-    const deltaX = touchStartX - touchEndX;
-    const swipeThreshold = 50;
+    const deltaX = touchStartX - touchEndX
+    const swipeThreshold = 50
 
     if (deltaX > swipeThreshold) {
-      handleNextSlide();
+      handleNextSlide()
     } else if (deltaX < -swipeThreshold) {
-      handlePrevSlide();
+      handlePrevSlide()
     }
 
-    setTouchStartX(null);
-    setTouchEndX(null);
-  };
+    setTouchStartX(null)
+    setTouchEndX(null)
+  }
 
-  // Handle keyboard navigation in fullscreen mode
+  // Handle keyboard navigation in fullscreen mode - Updated to support all arrow keys
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!showFullScreen) return;
+      if (!showFullScreen) return
 
       switch (e.key) {
         case "ArrowRight":
-          handlePrevSlide();
-          break;
+        case "ArrowUp":
+          handlePrevSlide()
+          break
         case "ArrowLeft":
-          handleNextSlide();
-          break;
+        case "ArrowDown":
+          handleNextSlide()
+          break
         case "Escape":
-          exitFullScreen();
-          break;
+          exitFullScreen()
+          break
+        case "+":
+        case "=":
+          increaseFontSize()
+          break
+        case "-":
+        case "_":
+          decreaseFontSize()
+          break
       }
-    };
+    }
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showFullScreen, handleNextSlide, handlePrevSlide]);
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [showFullScreen, handleNextSlide, handlePrevSlide, increaseFontSize, decreaseFontSize])
 
   // Handle auto-advance
   useEffect(() => {
     if (showFullScreen && autoAdvance) {
       if (autoAdvanceTimerRef.current) {
-        clearInterval(autoAdvanceTimerRef.current);
+        clearInterval(autoAdvanceTimerRef.current)
       }
 
       autoAdvanceTimerRef.current = setInterval(() => {
         if (currentSlide < slides.length - 1) {
-          setCurrentSlide((prev) => prev + 1);
+          setCurrentSlide((prev) => prev + 1)
         } else {
           if (autoAdvanceTimerRef.current) {
-            clearInterval(autoAdvanceTimerRef.current);
-            autoAdvanceTimerRef.current = null;
+            clearInterval(autoAdvanceTimerRef.current)
+            autoAdvanceTimerRef.current = null
           }
         }
-      }, autoAdvanceInterval * 1000);
+      }, autoAdvanceInterval * 1000)
 
       return () => {
         if (autoAdvanceTimerRef.current) {
-          clearInterval(autoAdvanceTimerRef.current);
-          autoAdvanceTimerRef.current = null;
+          clearInterval(autoAdvanceTimerRef.current)
+          autoAdvanceTimerRef.current = null
         }
-      };
+      }
     }
-  }, [showFullScreen, autoAdvance, autoAdvanceInterval, currentSlide, slides.length]);
+  }, [showFullScreen, autoAdvance, autoAdvanceInterval, currentSlide, slides.length])
 
   // Handle form submission to send email
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     const hymnData = {
       title,
       slides,
       timestamp: new Date().toISOString(),
-    };
+    }
 
     try {
       const emailContent = `
@@ -212,140 +244,141 @@ export default function AddHymn() {
         Timestamp: ${hymnData.timestamp}
         Slides:
         ${hymnData.slides.map((slide, index) => `Slide ${index + 1}:\n${slide}\n`).join("\n")}
-      `;
+      `
 
-      const mailtoLink = `mailto:infotojesus@gmail.com?subject=New Hymn Submission: ${encodeURIComponent(hymnData.title)}&body=${encodeURIComponent(emailContent)}`;
+      const mailtoLink = `mailto:infotojesus@gmail.com?subject=New Hymn Submission: ${encodeURIComponent(hymnData.title)}&body=${encodeURIComponent(emailContent)}`
 
-      window.location.href = mailtoLink;
+      window.location.href = mailtoLink
 
-      alert("تم إعداد البريد الإلكتروني! يرجى إرساله من تطبيق البريد الخاص بك.");
-      setTitle("");
-      setSlides([]);
-      setSlideCount(1);
-      setCurrentStep(1);
+      alert("تم إعداد البريد الإلكتروني! يرجى إرساله من تطبيق البريد الخاص بك.")
+      setTitle("")
+      setSlides([])
+      setSlideCount(1)
+      setCurrentStep(1)
     } catch (error) {
-      console.error("Error preparing email:", error);
-      alert("حدث خطأ أثناء إعداد البريد الإلكتروني");
+      console.error("Error preparing email:", error)
+      alert("حدث خطأ أثناء إعداد البريد الإلكتروني")
     }
-  };
+  }
 
   // Handle slide content change
   const handleSlideContentChange = (index: number, content: string) => {
-    const newSlides = [...slides];
-    newSlides[index] = content;
-    setSlides(newSlides);
-  };
+    const newSlides = [...slides]
+    newSlides[index] = content
+    setSlides(newSlides)
+  }
 
-  // Handle fullscreen exit
-  const exitFullScreen = () => {
-    setShowFullScreen(false);
-    if (document.fullscreenElement) {
+  // Handle fullscreen exit - Updated to return to main page
+  const exitFullScreen = useCallback(() => {
+    setShowFullScreen(false)
+    setCurrentSlide(0)
+    if (typeof window !== "undefined" && document.fullscreenElement) {
       document.exitFullscreen().catch((err) => {
-        console.warn("Error attempting to exit fullscreen:", err);
-      });
+        console.warn("Error attempting to exit fullscreen:", err)
+      })
     }
 
     if (autoAdvanceTimerRef.current) {
-      clearInterval(autoAdvanceTimerRef.current);
-      autoAdvanceTimerRef.current = null;
+      clearInterval(autoAdvanceTimerRef.current)
+      autoAdvanceTimerRef.current = null
     }
-  };
+  }, [])
 
   // Handle PowerPoint download
   const handleDownloadPowerPoint = () => {
-    const content = slides.map((slide, index) => `Slide ${index + 1}:\n${slide}\n\n`).join("");
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
+    const content = slides.map((slide, index) => `Slide ${index + 1}:\n${slide}\n\n`).join("")
+    const blob = new Blob([content], { type: "text/plain" })
+    const url = URL.createObjectURL(blob)
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${title}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${title}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
 
-    URL.revokeObjectURL(url);
-    alert("تم تحميل الملف بنجاح");
-  };
+    URL.revokeObjectURL(url)
+    alert("تم تحميل الملف بنجاح")
+  }
 
   // Handle entering fullscreen mode
   const enterFullScreen = () => {
-    setShowFullScreen(true);
-    setCurrentSlide(0);
+    setShowFullScreen(true)
+    setCurrentSlide(0)
 
     document.documentElement.requestFullscreen().catch((err) => {
-      console.warn("Error attempting to enable fullscreen:", err);
-    });
-  };
+      console.warn("Error attempting to enable fullscreen:", err)
+    })
+  }
 
   // Handle upload background
   const handleUploadBackground = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]
     if (file) {
-      const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp", "image/tiff"];
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp", "image/tiff"]
       if (!validImageTypes.includes(file.type)) {
-        alert("يرجى اختيار ملف صورة (مثل PNG، JPG، GIF، إلخ).");
-        return;
+        alert("يرجى اختيار ملف صورة (مثل PNG، JPG، GIF، إلخ).")
+        return
       }
 
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
+        const imageUrl = e.target?.result as string
         const newTheme: Theme = {
           name: `مخصص ${customThemes.length + 1}`,
           background: "",
           text: "text-white",
           isCustom: true,
           customUrl: imageUrl,
-        };
-        setCustomThemes((prev) => [...prev, newTheme]);
-        setCurrentTheme(newTheme);
-      };
-      reader.readAsDataURL(file);
+        }
+        setCustomThemes((prev) => [...prev, newTheme])
+        setCurrentTheme(newTheme)
+      }
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   // Handle upload image
   const handleUploadImage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]
     if (file) {
-      const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp", "image/tiff"];
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp", "image/tiff"]
       if (!validImageTypes.includes(file.type)) {
-        alert("يرجى اختيار ملف صورة (مثل PNG، JPG، GIF، إلخ).");
-        return;
+        alert("يرجى اختيار ملف صورة (مثل PNG، JPG، GIF، إلخ).")
+        return
       }
 
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onload = (e) => {
-        setBackgroundImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+        setBackgroundImage(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   // Calculate dynamic font size
   const calculateDynamicFontSize = (text: string) => {
-    const textLength = text.length;
-    const baseFontSize = globalFontSize;
-    const minFontSize = 24;
-    const maxFontSize = 120;
+    const textLength = text.length
+    const baseFontSize = globalFontSize
+    const minFontSize = 24
+    const maxFontSize = 120
 
     if (textLength < 50) {
-      return Math.min(baseFontSize * 1.2, maxFontSize);
+      return Math.min(baseFontSize * 1.2, maxFontSize)
     } else if (textLength > 200) {
-      return Math.max(baseFontSize * 0.8, minFontSize);
+      return Math.max(baseFontSize * 0.8, minFontSize)
     }
-    return baseFontSize;
-  };
+    return baseFontSize
+  }
 
   // Save settings
   const saveSettings = () => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("globalFontSize", globalFontSize.toString());
-      localStorage.setItem("slideTransition", slideTransition);
+      localStorage.setItem("globalFontSize", globalFontSize.toString())
+      localStorage.setItem("slideTransition", slideTransition)
     }
-    setShowSettings(false);
-  };
+    setShowSettings(false)
+  }
 
   // Transition variants
   const getTransitionVariants = () => {
@@ -356,14 +389,14 @@ export default function AddHymn() {
           animate: { opacity: 1 },
           exit: { opacity: 0 },
           transition: { duration: 0.1, ease: "easeOut" },
-        };
+        }
       case "slide":
         return {
           initial: { x: 100, opacity: 0 },
           animate: { x: 0, opacity: 1 },
           exit: { x: -100, opacity: 0 },
           transition: { duration: 0.1, ease: "easeOut" },
-        };
+        }
       case "none":
       default:
         return {
@@ -371,9 +404,9 @@ export default function AddHymn() {
           animate: { opacity: 1 },
           exit: { opacity: 1 },
           transition: { duration: 0 },
-        };
+        }
     }
-  };
+  }
 
   // Render settings panel
   const renderSettingsPanel = () => {
@@ -484,9 +517,7 @@ export default function AddHymn() {
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs xs:text-sm text-white font-semibold">
-                    حجم الخط: {globalFontSize}px
-                  </Label>
+                  <Label className="text-xs xs:text-sm text-white font-semibold">حجم الخط: {globalFontSize}px</Label>
                 </div>
                 <Slider
                   min={24}
@@ -495,6 +526,10 @@ export default function AddHymn() {
                   value={[globalFontSize]}
                   onValueChange={(value) => setGlobalFontSize(value[0])}
                 />
+                <div className="text-xs text-gray-400 mt-2">
+                  💡 يمكنك أيضاً استخدام أزرار التحكم أسفل الشاشة أو مفاتيح + و - للتحكم في حجم الخط
+                  <br />🎯 استخدم الأسهم الأربعة للتنقل بين الشرائح
+                </div>
               </div>
 
               <div className="pt-4 border-t border-gray-500">
@@ -575,23 +610,14 @@ export default function AddHymn() {
               )}
 
               <div className="space-y-2">
-                <Label className="text-xs xs:text-sm text-white font-semibold">
-                  تأثير الانتقال بين الشرائح
-                </Label>
-                <Select
-                  value={slideTransition}
-                  onValueChange={setSlideTransition}
-                >
+                <Label className="text-xs xs:text-sm text-white font-semibold">تأثير الانتقال بين الشرائح</Label>
+                <Select value={slideTransition} onValueChange={setSlideTransition}>
                   <SelectTrigger className="w-full bg-gray-800 text-white border-gray-500">
                     <SelectValue placeholder="اختر تأثير الانتقال" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 text-white border-gray-500">
                     {transitionOptions.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        className="hover:bg-gray-700"
-                      >
+                      <SelectItem key={option.value} value={option.value} className="hover:bg-gray-700">
                         {option.name}
                       </SelectItem>
                     ))}
@@ -649,9 +675,7 @@ export default function AddHymn() {
                       />
                     </div>
                     <div className="space-y-2 mt-4">
-                      <Label className="text-xs xs:text-sm text-white font-semibold">
-                        الحجم: {imageSize}%
-                      </Label>
+                      <Label className="text-xs xs:text-sm text-white font-semibold">الحجم: {imageSize}%</Label>
                       <Slider
                         min={10}
                         max={100}
@@ -678,8 +702,9 @@ export default function AddHymn() {
                   <div className="font-bold text-white text-sm">معلومات</div>
                 </div>
                 <div className="text-xs xs:text-sm text-gray-400 space-y-2">
-                  <p>استخدم مفاتيح الأسهم للتنقل بين الشرائح</p>
-                  <p>اضغط ESC للخروج من وضع ملء الشاشة</p>
+                  <p>استخدم الأسهم الأربعة للتنقل بين الشرائح</p>
+                  <p>اضغط ESC للعودة إلى الصفحة الرئيسية</p>
+                  <p>استخدم أزرار A+ و A- أسفل الشاشة لتغيير حجم الخط</p>
                 </div>
               </div>
             </TabsContent>
@@ -693,8 +718,8 @@ export default function AddHymn() {
           </Button>
         </div>
       </motion.div>
-    );
-  };
+    )
+  }
 
   return (
     <Card className="bg-background max-w-4xl mx-auto w-full">
@@ -745,10 +770,10 @@ export default function AddHymn() {
                 className="w-full mt-4 text-sm xs:text-base bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200"
                 onClick={() => {
                   if (!title.trim()) {
-                    alert("الرجاء إدخال عنوان الترنيمة");
-                    return;
+                    alert("الرجاء إدخال عنوان الترنيمة")
+                    return
                   }
-                  setCurrentStep(2);
+                  setCurrentStep(2)
                 }}
               >
                 التالي
@@ -763,7 +788,10 @@ export default function AddHymn() {
 
               {slides.map((slide, index) => (
                 <div key={index} className="space-y-2 p-4 border rounded-md border-border">
-                  <Label htmlFor={`slide-${index}`} className="text-right text-sm xs:text-base text-foreground font-semibold">
+                  <Label
+                    htmlFor={`slide-${index}`}
+                    className="text-right text-sm xs:text-base text-foreground font-semibold"
+                  >
                     شريحة {index + 1}
                   </Label>
                   <Textarea
@@ -789,12 +817,12 @@ export default function AddHymn() {
                 <Button
                   type="button"
                   onClick={() => {
-                    const hasEmptySlide = slides.some((slide) => !slide.trim());
+                    const hasEmptySlide = slides.some((slide) => !slide.trim())
                     if (hasEmptySlide) {
-                      alert("الرجاء إدخال محتوى لجميع الشرائح");
-                      return;
+                      alert("الرجاء إدخال محتوى لجميع الشرائح")
+                      return
                     }
-                    enterFullScreen();
+                    enterFullScreen()
                   }}
                   className="text-sm xs:text-base bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200"
                 >
@@ -843,12 +871,10 @@ export default function AddHymn() {
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              {currentTheme.isCustom && currentTheme.customUrl && (
-                <div className="absolute inset-0 bg-black/50 z-10" />
-              )}
+              {currentTheme.isCustom && currentTheme.customUrl && <div className="absolute inset-0 bg-black/50 z-10" />}
               {backgroundImage && (
                 <img
-                  src={backgroundImage}
+                  src={backgroundImage || "/placeholder.svg"}
                   alt="Background Image"
                   className="absolute z-15"
                   style={{
@@ -875,8 +901,8 @@ export default function AddHymn() {
                       fontSize: `${calculateDynamicFontSize(slides[currentSlide])}px`,
                       fontFamily: '"Noto Sans Arabic", sans-serif',
                       fontWeight: 700,
-                      direction: 'rtl',
-                      textAlign: 'center',
+                      direction: "rtl",
+                      textAlign: "center",
                     }}
                   >
                     {slides[currentSlide]}
@@ -910,32 +936,77 @@ export default function AddHymn() {
                 </button>
               </div>
 
-              <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 sm:gap-6 z-30">
-                <button
-                  onClick={handlePrevSlide}
-                  className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
-                    currentSlide === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-white/20"
-                  }`}
-                  disabled={currentSlide === 0}
-                  aria-label="الشريحة السابقة"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
+              {/* Font size control buttons - centered at bottom */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-30"
+              >
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={decreaseFontSize}
+                        disabled={globalFontSize <= 20}
+                        className={`w-12 h-12 rounded-full bg-black/70 backdrop-blur-sm text-white flex items-center justify-center transition-all duration-200 ${
+                          globalFontSize <= 20
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:bg-black/80 active:bg-black/90"
+                        }`}
+                        aria-label="تصغير الخط"
+                      >
+                        <div className="flex items-center justify-center">
+                          <span className="text-lg font-bold">A</span>
+                          <Minus className="h-3 w-3 ml-1" />
+                        </div>
+                      </motion.button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>تصغير الخط (حالياً: {globalFontSize}px)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
 
-                <span className="text-white font-semibold">
+                <div className="text-white font-semibold text-sm bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">
+                  {globalFontSize}px
+                </div>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={increaseFontSize}
+                        disabled={globalFontSize >= 120}
+                        className={`w-12 h-12 rounded-full bg-black/70 backdrop-blur-sm text-white flex items-center justify-center transition-all duration-200 ${
+                          globalFontSize >= 120
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:bg-black/80 active:bg-black/90"
+                        }`}
+                        aria-label="تكبير الخط"
+                      >
+                        <div className="flex items-center justify-center">
+                          <span className="text-lg font-bold">A</span>
+                          <Plus className="h-3 w-3 ml-1" />
+                        </div>
+                      </motion.button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>تكبير الخط (حالياً: {globalFontSize}px)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </motion.div>
+
+              {/* Slide counter moved to left */}
+              <div className="fixed bottom-8 left-8 z-30">
+                <div className="text-white font-semibold bg-black/50 px-3 py-2 rounded-full backdrop-blur-sm">
                   {currentSlide + 1} / {slides.length}
-                </span>
-
-                <button
-                  onClick={handleNextSlide}
-                  className={`p-3 rounded-full bg-black/50 text-white transition-colors duration-200 ${
-                    currentSlide === slides.length - 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-white/20"
-                  }`}
-                  disabled={currentSlide === slides.length - 1}
-                  aria-label="الشريحة التالية"
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </button>
+                </div>
               </div>
 
               {showSettings && renderSettingsPanel()}
@@ -944,5 +1015,5 @@ export default function AddHymn() {
         )}
       </CardContent>
     </Card>
-  );
+  )
 }
