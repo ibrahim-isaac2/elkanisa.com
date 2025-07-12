@@ -15,7 +15,7 @@ workbox.precaching.precacheAndRoute([
   { url: "/icon-512x512.png", revision: "20250711" },
   { url: "/icon.png", revision: "20250711" },
   { url: "/offline.html", revision: "20250711" },
-  { url: "/end.png", revision: "20250711" },
+  { url: "/end.png", revision: "20250712" },
   { url: "/myfooter.jpg", revision: "20250711" },
   { url: "/BM.png", revision: "20250711" },
   { url: "/placeholder-logo.png", revision: "20250711" },
