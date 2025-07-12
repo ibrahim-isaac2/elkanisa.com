@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import type React from "react"
+import { useState, useCallback, useRef, useEffect, useMemo } from "react"
 import {
   ChevronLeft,
   ChevronRight,
@@ -19,93 +19,84 @@ import {
   Columns,
   Book,
   FileText,
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Input } from "@/components/ui/input";
-import { useTheme } from "@/app/ThemeContext";
+  Plus,
+  Minus,
+} from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Slider } from "@/components/ui/slider"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Input } from "@/components/ui/input"
+import { useTheme } from "@/app/ThemeContext"
 
 // تعريفات الانواع المخصصة لـ SpeechRecognition
 interface SpeechRecognitionResult {
-  transcript: string;
+  transcript: string
 }
 
 interface SpeechRecognitionEvent {
-  results: SpeechRecognitionResult[][];
+  results: SpeechRecognitionResult[][]
 }
 
 interface SpeechRecognitionErrorEvent {
-  error: string;
+  error: string
 }
 
 interface SpeechRecognition {
-  new (): SpeechRecognition;
-  lang: string;
-  interimResults: boolean;
-  maxAlternatives: number;
-  continuous: boolean;
-  start: () => void;
-  stop: () => void;
-  onresult: ((event: SpeechRecognitionEvent) => void) | null;
-  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
-  onend: (() => void) | null;
+  new (): SpeechRecognition
+  lang: string
+  interimResults: boolean
+  maxAlternatives: number
+  continuous: boolean
+  start: () => void
+  stop: () => void
+  onresult: ((event: SpeechRecognitionEvent) => void) | null
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null
+  onend: (() => void) | null
 }
 
 // تعريفات انواع البيانات لملف bible.json
 interface BibleVerse {
-  number: number;
-  text: string;
+  number: number
+  text: string
 }
 
 interface BibleChapter {
-  number: number;
-  verses: BibleVerse[];
+  number: number
+  verses: BibleVerse[]
 }
 
 interface BibleBook {
-  name: string;
-  chapters: BibleChapter[];
+  name: string
+  chapters: BibleChapter[]
 }
 
 interface BibleSection {
-  name: string;
-  books: BibleBook[];
+  name: string
+  books: BibleBook[]
 }
 
-type BibleData = BibleSection[];
+type BibleData = BibleSection[]
 
 type Theme = {
-  background: string;
-  text: string;
-  name: string;
-  isCustom?: boolean;
-  customUrl?: string;
-};
+  background: string
+  text: string
+  name: string
+  isCustom?: boolean
+  customUrl?: string
+}
 
 type SearchResult = {
-  book: string;
-  chapter: number;
-  verse: number;
-  text: string;
-};
+  book: string
+  chapter: number
+  verse: number
+  text: string
+}
 
 const themes: Theme[] = [
   { name: "افتراضي", background: "bg-black", text: "text-white" },
@@ -118,7 +109,7 @@ const themes: Theme[] = [
   { name: "احمر داكن", background: "bg-gradient-to-br from-red-800 to-red-950", text: "text-white" },
   { name: "برتقالي داكن", background: "bg-gradient-to-br from-orange-800 to-orange-950", text: "text-white" },
   { name: "اصفر فاتح", background: "bg-gradient-to-br from-yellow-50 to-yellow-200", text: "text-yellow-900" },
-];
+]
 
 const textColors = [
   { name: "ابيض", class: "text-white" },
@@ -129,83 +120,83 @@ const textColors = [
   { name: "اصفر", class: "text-yellow-500" },
   { name: "برتقالي", class: "text-orange-500" },
   { name: "بنفسجي", class: "text-purple-500" },
-];
+]
 
 // تعريف الاختصارات لاسماء الاسفار
 const bookAbbreviations: { [key: string]: string } = {
   // العهد القديم
-  "تك": "تكوين",
-  "خر": "خروج",
-  "لا": "لاويين",
-  "عد": "عدد",
-  "تث": "تثنية",
-  "يش": "يشوع",
-  "قض": "قضاة",
-  "را": "راعوث",
+  تك: "تكوين",
+  خر: "خروج",
+  لا: "لاويين",
+  عد: "عدد",
+  تث: "تثنية",
+  يش: "يشوع",
+  قض: "قضاة",
+  را: "راعوث",
   "1 صم": "صموئيل الاول",
   "2 صم": "صموئيل الثاني",
   "1 مل": "ملوك الاول",
   "2 مل": "ملوك الثاني",
   "1 اخ": "اخبار الايام الاول",
   "2 اخ": "اخبار الايام الثاني",
-  "عز": "عزرا",
-  "نح": "نحميا",
-  "اس": "استير",
-  "اي": "ايوب",
-  "مز": "مزامير",
-  "ام": "امثال",
-  "جا": "جامعة",
-  "نش": "نشيد الانشاد",
-  "اش": "اشعياء",
-  "ار": "ارميا",
-  "مرا": "مراثي ارميا",
-  "حز": "حزقيال",
-  "دا": "دانيال",
-  "هو": "هوشع",
-  "يوئ": "يوئيل",
-  "عا": "عاموس",
-  "عو": "عوبديا",
-  "يون": "يونان",
-  "مي": "ميخا",
-  "نا": "ناحوم",
-  "حب": "حبقوق",
-  "صف": "صفنيا",
-  "حج": "حجي",
-  "زك": "زكريا",
-  "مل": "ملاخي",
+  عز: "عزرا",
+  نح: "نحميا",
+  اس: "استير",
+  اي: "ايوب",
+  مز: "مزامير",
+  ام: "امثال",
+  جا: "جامعة",
+  نش: "نشيد الانشاد",
+  اش: "اشعياء",
+  ار: "ارميا",
+  مرا: "مراثي ارميا",
+  حز: "حزقيال",
+  دا: "دانيال",
+  هو: "هوشع",
+  يوئ: "يوئيل",
+  عا: "عاموس",
+  عو: "عوبديا",
+  يون: "يونان",
+  مي: "ميخا",
+  نا: "ناحوم",
+  حب: "حبقوق",
+  صف: "صفنيا",
+  حج: "حجي",
+  زك: "زكريا",
+  مل: "ملاخي",
   // العهد الجديد
-  "مت": "متى",
-  "مر": "مرقس",
-  "لو": "لوقا",
-  "يو": "يوحنا",
-  "اع": "اعمال الرسل",
-  "رو": "رومية",
+  مت: "متى",
+  مر: "مرقس",
+  لو: "لوقا",
+  يو: "يوحنا",
+  اع: "اعمال الرسل",
+  رو: "رومية",
   "1 كو": "كورنثوس الاولى",
   "2 كو": "كورنثوس الثانية",
-  "غل": "غلاطية",
-  "اف": "افسس",
-  "في": "فيلبي",
-  "كو": "كولوسي",
+  غل: "غلاطية",
+  اف: "افسس",
+  في: "فيلبي",
+  كو: "كولوسي",
   "1 تس": "تسالونيكي الاولى",
   "2 تس": "تسالونيكي الثانية",
   "1 تي": "تيموثاوس الاولى",
   "2 تي": "تيموثاوس الثانية",
-  "تي": "تيطس",
-  "فيم": "فيلمون",
-  "عب": "عبرانيين",
-  "يع": "يعقوب",
+  تي: "تيطس",
+  فيم: "فيلمون",
+  عب: "عبرانيين",
+  يع: "يعقوب",
   "1 بط": "بطرس الاولى",
   "2 بط": "بطرس الثانية",
   "1 يو": "يوحنا الاولى",
   "2 يو": "يوحنا الثانية",
   "3 يو": "يوحنا الثالثة",
-  "يه": "يهوذا",
-  "رؤ": "رؤيا يوحنا",
-};
+  يه: "يهوذا",
+  رؤ: "رؤيا يوحنا",
+}
 
 export default function TextBible() {
   useEffect(() => {
-    const style = document.createElement("style");
+    const style = document.createElement("style")
     style.textContent = `
       .arabic-text {
         font-family: 'Noto Sans Arabic', sans-serif;
@@ -218,138 +209,136 @@ export default function TextBible() {
         font-feature-settings: 'liga' on, 'calt' on;
         text-rendering: optimizeLegibility;
       }
-    `;
-    document.head.appendChild(style);
+    `
+    document.head.appendChild(style)
 
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&display=swap";
-    document.head.appendChild(link);
+    const link = document.createElement("link")
+    link.rel = "stylesheet"
+    link.href = "https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&display=swap"
+    document.head.appendChild(link)
 
     return () => {
-      document.head.removeChild(style);
-      document.head.removeChild(link);
-    };
-  }, []);
+      document.head.removeChild(style)
+      document.head.removeChild(link)
+    }
+  }, [])
 
-  const [bibleData, setBibleData] = useState<BibleData | null>(null);
-  const [books, setBooks] = useState<string[]>([]);
-  const [chapters, setChapters] = useState<number[]>([]);
-  const [selectedBook, setSelectedBook] = useState("");
-  const [selectedChapter, setSelectedChapter] = useState("");
-  const [chapterText, setChapterText] = useState<string[]>([]);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showFullScreen, setShowFullScreen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
-  const [currentTheme, setCurrentTheme] = useState<Theme>(themes[0]);
-  const [showSettings, setShowSettings] = useState(false);
-  const [activeTab, setActiveTab] = useState("theme");
-  const [currentTextColor, setCurrentTextColor] = useState(textColors[0]);
+  const [bibleData, setBibleData] = useState<BibleData | null>(null)
+  const [books, setBooks] = useState<string[]>([])
+  const [chapters, setChapters] = useState<number[]>([])
+  const [selectedBook, setSelectedBook] = useState("")
+  const [selectedChapter, setSelectedChapter] = useState("")
+  const [chapterText, setChapterText] = useState<string[]>([])
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [showFullScreen, setShowFullScreen] = useState(false)
+  const { theme, toggleTheme } = useTheme()
+  const [currentTheme, setCurrentTheme] = useState<Theme>(themes[0])
+  const [showSettings, setShowSettings] = useState(false)
+  const [activeTab, setActiveTab] = useState("theme")
+  const [currentTextColor, setCurrentTextColor] = useState(textColors[0])
   const [globalFontSize, setGlobalFontSize] = useState(() => {
     if (typeof window !== "undefined") {
-      const savedFontSize = localStorage.getItem("globalFontSize");
-      return savedFontSize ? parseInt(savedFontSize, 10) : 48;
+      const savedFontSize = localStorage.getItem("globalFontSize")
+      return savedFontSize ? Number.parseInt(savedFontSize, 10) : 48
     }
-    return 48;
-  });
-  const [watermark, setWatermark] = useState("");
-  const [watermarkColor, setWatermarkColor] = useState(textColors[0]);
-  const [watermarkFontSize, setWatermarkFontSize] = useState(20);
-  const [customThemes, setCustomThemes] = useState<Theme[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredBooks, setFilteredBooks] = useState<string[]>([]);
-  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [voiceError, setVoiceError] = useState<string | null>(null);
-  const [showRecentSearches, setShowRecentSearches] = useState(false);
-  const [recentBibleSearches, setRecentBibleSearches] = useState<string[]>([]);
-  const [favoriteBibleChapters, setFavoriteBibleChapters] = useState<string[]>([]);
-  const [displayMode, setDisplayMode] = useState<"slides" | "list">("slides");
-  const [autoAdvance, setAutoAdvance] = useState(false);
-  const [autoAdvanceInterval, setAutoAdvanceInterval] = useState(10);
-  const [lineSpacing, setLineSpacing] = useState(1.8);
-  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
-  const [imagePositionX, setImagePositionX] = useState(50);
-  const [imagePositionY, setImagePositionY] = useState(50);
-  const [imageSize, setImageSize] = useState(50);
-  const [searchMode, setSearchMode] = useState<"books" | "verses">("books");
-  const [verseSearchResults, setVerseSearchResults] = useState<SearchResult[]>([]);
-  const [bookMap, setBookMap] = useState<{ [key: string]: BibleBook }>({});
+    return 48
+  })
+  const [watermark, setWatermark] = useState("")
+  const [watermarkColor, setWatermarkColor] = useState(textColors[0])
+  const [watermarkFontSize, setWatermarkFontSize] = useState(20)
+  const [customThemes, setCustomThemes] = useState<Theme[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [filteredBooks, setFilteredBooks] = useState<string[]>([])
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const [voiceError, setVoiceError] = useState<string | null>(null)
+  const [showRecentSearches, setShowRecentSearches] = useState(false)
+  const [recentBibleSearches, setRecentBibleSearches] = useState<string[]>([])
+  const [favoriteBibleChapters, setFavoriteBibleChapters] = useState<string[]>([])
+  const [displayMode, setDisplayMode] = useState<"slides" | "list">("slides")
+  const [autoAdvance, setAutoAdvance] = useState(false)
+  const [autoAdvanceInterval, setAutoAdvanceInterval] = useState(10)
+  const [lineSpacing, setLineSpacing] = useState(1.8)
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null)
+  const [imagePositionX, setImagePositionX] = useState(50)
+  const [imagePositionY, setImagePositionY] = useState(50)
+  const [imageSize, setImageSize] = useState(50)
+  const [searchMode, setSearchMode] = useState<"books" | "verses">("books")
+  const [verseSearchResults, setVerseSearchResults] = useState<SearchResult[]>([])
+  const [bookMap, setBookMap] = useState<{ [key: string]: BibleBook }>({})
 
   // Precompute maps for abbreviations for performance optimization
   const bookToAbbrKeysMap = useMemo(() => {
-    const map: { [bookFullName: string]: string[] } = {};
+    const map: { [bookFullName: string]: string[] } = {}
     for (const abbrKey in bookAbbreviations) {
-        const fullBookName = bookAbbreviations[abbrKey];
-        if (!map[fullBookName]) {
-            map[fullBookName] = [];
-        }
-        map[fullBookName].push(abbrKey);
+      const fullBookName = bookAbbreviations[abbrKey]
+      if (!map[fullBookName]) {
+        map[fullBookName] = []
+      }
+      map[fullBookName].push(abbrKey)
     }
-    return map;
-  }, []); // bookAbbreviations is a global const, so this runs once
+    return map
+  }, []) // bookAbbreviations is a global const, so this runs once
 
   const lowerAbbrToOriginalBookNameMap = useMemo(() => {
-    const map: { [lcAbbr: string]: string } = {};
+    const map: { [lcAbbr: string]: string } = {}
     for (const abbrKey in bookAbbreviations) {
-        map[abbrKey.toLowerCase()] = bookAbbreviations[abbrKey];
+      map[abbrKey.toLowerCase()] = bookAbbreviations[abbrKey]
     }
-    return map;
-  }, []); // bookAbbreviations is a global const, so this runs once
+    return map
+  }, []) // bookAbbreviations is a global const, so this runs once
 
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
+  const [touchEndX, setTouchEndX] = useState<number | null>(null)
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const autoAdvanceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const autoAdvanceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const searchRef = useRef<HTMLDivElement>(null)
 
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null)
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const SpeechRecognitionAPI =
-        (window as any).SpeechRecognition ||
-        (window as any).webkitSpeechRecognition;
+      const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
       if (SpeechRecognitionAPI) {
-        const rec = new SpeechRecognitionAPI() as SpeechRecognition;
-        rec.lang = "ar";
-        rec.interimResults = false;
-        rec.maxAlternatives = 1;
-        rec.continuous = false;
-        setRecognition(rec);
+        const rec = new SpeechRecognitionAPI() as SpeechRecognition
+        rec.lang = "ar"
+        rec.interimResults = false
+        rec.maxAlternatives = 1
+        rec.continuous = false
+        setRecognition(rec)
       }
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
     const setInitialFontSize = () => {
-      const width = window.innerWidth;
+      const width = window.innerWidth
       if (width < 640) {
         setGlobalFontSize((prev) => {
-          const savedFontSize = localStorage.getItem("globalFontSize");
-          return savedFontSize ? parseInt(savedFontSize, 10) : 36;
-        });
+          const savedFontSize = localStorage.getItem("globalFontSize")
+          return savedFontSize ? Number.parseInt(savedFontSize, 10) : 36
+        })
       } else if (width >= 640 && width < 1024) {
         setGlobalFontSize((prev) => {
-          const savedFontSize = localStorage.getItem("globalFontSize");
-          return savedFontSize ? parseInt(savedFontSize, 10) : 48;
-        });
+          const savedFontSize = localStorage.getItem("globalFontSize")
+          return savedFontSize ? Number.parseInt(savedFontSize, 10) : 48
+        })
       } else {
         setGlobalFontSize((prev) => {
-          const savedFontSize = localStorage.getItem("globalFontSize");
-          return savedFontSize ? parseInt(savedFontSize, 10) : 64;
-        });
+          const savedFontSize = localStorage.getItem("globalFontSize")
+          return savedFontSize ? Number.parseInt(savedFontSize, 10) : 64
+        })
       }
-    };
+    }
 
-    setInitialFontSize();
-    window.addEventListener("resize", setInitialFontSize);
-    return () => window.removeEventListener("resize", setInitialFontSize);
-  }, []);
+    setInitialFontSize()
+    window.addEventListener("resize", setInitialFontSize)
+    return () => window.removeEventListener("resize", setInitialFontSize)
+  }, [])
 
   useEffect(() => {
     fetch("/bible.json", {
@@ -359,219 +348,217 @@ export default function TextBible() {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          throw new Error(`HTTP error! Status: ${response.status}`)
         }
-        return response.json();
+        return response.json()
       })
       .then((rawData: BibleData) => {
         // Process data: trim book names throughout the structure
-        const processedData = rawData.map(section => ({
+        const processedData = rawData.map((section) => ({
           ...section,
-          books: section.books.map(book => ({
+          books: section.books.map((book) => ({
             ...book,
             name: book.name.trim(), // Trim book name
-            chapters: book.chapters.map(ch => ({
+            chapters: book.chapters.map((ch) => ({
               ...ch,
-              verses: ch.verses.map(v => ({...v, text: v.text.trim()}))
-            }))
-          }))
-        }));
-        setBibleData(processedData); // Store the fully processed data
+              verses: ch.verses.map((v) => ({ ...v, text: v.text.trim() })),
+            })),
+          })),
+        }))
+        setBibleData(processedData) // Store the fully processed data
 
-        const allBooksFromProcessedData = processedData.flatMap((section) => section.books);
-        const uniqueBookNames = Array.from(new Set(allBooksFromProcessedData.map((book) => book.name))); // Names are already trimmed
-        setBooks(uniqueBookNames);
-        setFilteredBooks(uniqueBookNames);
+        const allBooksFromProcessedData = processedData.flatMap((section) => section.books)
+        const uniqueBookNames = Array.from(new Set(allBooksFromProcessedData.map((book) => book.name))) // Names are already trimmed
+        setBooks(uniqueBookNames)
+        setFilteredBooks(uniqueBookNames)
 
-        const bookMapTemp: { [key: string]: BibleBook } = {};
-        allBooksFromProcessedData.forEach((book) => { // book.name is already trimmed
-          bookMapTemp[book.name] = book; // book itself is from processedData, so its 'name' is trimmed
-        });
-        setBookMap(bookMapTemp);
-        setIsLoading(false);
+        const bookMapTemp: { [key: string]: BibleBook } = {}
+        allBooksFromProcessedData.forEach((book) => {
+          // book.name is already trimmed
+          bookMapTemp[book.name] = book // book itself is from processedData, so its 'name' is trimmed
+        })
+        setBookMap(bookMapTemp)
+        setIsLoading(false)
       })
       .catch((err) => {
-        console.error("Error loading Bible data:", err);
-        setError("فشل تحميل بيانات الكتاب المقدس.");
-        setIsLoading(false);
-      });
-  }, []);
+        console.error("Error loading Bible data:", err)
+        setError("فشل تحميل بيانات الكتاب المقدس.")
+        setIsLoading(false)
+      })
+  }, [])
 
   useEffect(() => {
     if (selectedBook && bibleData) {
-      const bookData = bookMap[selectedBook];
+      const bookData = bookMap[selectedBook]
       if (bookData) {
-        const chapters = bookData.chapters.map((chapter) => chapter.number);
-        setChapters(chapters.sort((a, b) => a - b));
-        setSelectedChapter("");
-        setChapterText([]);
-        setCurrentSlide(0);
-        setShowFullScreen(false);
+        const chapters = bookData.chapters.map((chapter) => chapter.number)
+        setChapters(chapters.sort((a, b) => a - b))
+        setSelectedChapter("")
+        setChapterText([])
+        setCurrentSlide(0)
+        setShowFullScreen(false)
       }
     }
-  }, [selectedBook, bibleData, bookMap]);
+  }, [selectedBook, bibleData, bookMap])
 
   useEffect(() => {
     if (selectedBook && selectedChapter && bibleData) {
-      const bookData = bookMap[selectedBook];
+      const bookData = bookMap[selectedBook]
       if (bookData) {
-        const chapterNumber = parseInt(selectedChapter);
-        const chapterData = bookData.chapters.find(
-          (chapter) => chapter.number === chapterNumber
-        );
+        const chapterNumber = Number.parseInt(selectedChapter)
+        const chapterData = bookData.chapters.find((chapter) => chapter.number === chapterNumber)
         if (chapterData) {
           const verses = chapterData.verses.map(
-            (verse) => `${selectedBook} ${chapterNumber}:${verse.number}\n${verse.text}`
-          );
-          setChapterText(verses);
-          setCurrentSlide(0);
-          setShowFullScreen(true);
-          document.documentElement.requestFullscreen().catch((err) =>
-            console.warn("Error enabling fullscreen:", err)
-          );
+            (verse) => `${selectedBook} ${chapterNumber}:${verse.number}\n${verse.text}`,
+          )
+          setChapterText(verses)
+          setCurrentSlide(0)
+          setShowFullScreen(true)
+          document.documentElement.requestFullscreen().catch((err) => console.warn("Error enabling fullscreen:", err))
         } else {
-          setError("لم يتم العثور على نص الاصحاح المحدد.");
+          setError("لم يتم العثور على نص الاصحاح المحدد.")
         }
       }
     }
-  }, [selectedBook, selectedChapter, bibleData, bookMap]);
+  }, [selectedBook, selectedChapter, bibleData, bookMap])
 
   useEffect(() => {
     if (searchMode === "books") {
-      const query = searchQuery.toLowerCase().trim();
+      const query = searchQuery.toLowerCase().trim()
       if (query === "") {
-        setFilteredBooks(books);
-        setShowSearchDropdown(false);
+        setFilteredBooks(books)
+        setShowSearchDropdown(false)
       } else {
-        const results = books.filter(bookName => {
-          const lowerBookName = bookName.toLowerCase();
+        const results = books.filter((bookName) => {
+          const lowerBookName = bookName.toLowerCase()
 
           // Condition 1: Query is part of the full book name
           if (lowerBookName.includes(query)) {
-            return true;
+            return true
           }
 
           // Condition 2: Query is part of an abbreviation for this book
           // This can be optimized later with a precomputed map
           for (const abbrKey in bookAbbreviations) {
             if (bookAbbreviations[abbrKey] === bookName && abbrKey.toLowerCase().includes(query)) {
-              return true;
+              return true
             }
           }
-          
+
           // Condition 3: Query is a number ("1", "2", "3") and matches numbered books
-          if (/^[1-3]$/.test(query)) { // Query is "1", "2", or "3"
+          if (/^[1-3]$/.test(query)) {
+            // Query is "1", "2", or "3"
             // Check full book names containing "الاول", "الثاني", "الثالث"
-            if (query === "1" && (lowerBookName.includes("الاول") || lowerBookName.includes("الأول"))) return true;
-            if (query === "2" && (lowerBookName.includes("الثاني") || lowerBookName.includes("الثانية"))) return true;
-            if (query === "3" && (lowerBookName.includes("الثالث") || lowerBookName.includes("الثالثة"))) return true;
+            if (query === "1" && (lowerBookName.includes("الاول") || lowerBookName.includes("الأول"))) return true
+            if (query === "2" && (lowerBookName.includes("الثاني") || lowerBookName.includes("الثانية"))) return true
+            if (query === "3" && (lowerBookName.includes("الثالث") || lowerBookName.includes("الثالثة"))) return true
 
             // Also check if an abbreviation for this book *starts with* the number query + space
             // This can be optimized later with a precomputed map
             for (const abbrKey in bookAbbreviations) {
               if (bookAbbreviations[abbrKey] === bookName && abbrKey.startsWith(query + " ")) {
-                return true;
+                return true
               }
             }
           }
-          return false;
-        });
-        setFilteredBooks(results);
-        setShowSearchDropdown(query !== "" && results.length > 0);
+          return false
+        })
+        setFilteredBooks(results)
+        setShowSearchDropdown(query !== "" && results.length > 0)
       }
-    } else { // searchMode === "verses"
-      setShowSearchDropdown(false); // No dropdown for verse search
+    } else {
+      // searchMode === "verses"
+      setShowSearchDropdown(false) // No dropdown for verse search
     }
-  }, [searchQuery, books, searchMode, bookAbbreviations]); // Added bookAbbreviations to dependencies, though it's const, for correctness if it were dynamic. Better to create maps outside with useMemo.
+  }, [searchQuery, books, searchMode, bookAbbreviations]) // Added bookAbbreviations to dependencies, though it's const, for correctness if it were dynamic. Better to create maps outside with useMemo.
 
   const handleSearchBookSelect = (book: string) => {
-    setSelectedBook(book);
-    setSearchQuery("");
-    setShowSearchDropdown(false);
+    setSelectedBook(book)
+    setSearchQuery("")
+    setShowSearchDropdown(false)
     if (searchQuery) {
-      addToRecentBibleSearches(searchQuery);
+      addToRecentBibleSearches(searchQuery)
     }
-  };
+  }
 
   // دالة لتحليل استعلام البحث (اختصار السفر + رقم الاصحاح)
- const parseBookChapter = (query: string) => {
-  const parts = query.trim().split(/\s+/);
-  if (parts.length < 2) return null;
+  const parseBookChapter = (query: string) => {
+    const parts = query.trim().split(/\s+/)
+    if (parts.length < 2) return null
 
-  let bookAbbr = '';
-  let chapter = '';
-  for (let i = 0; i < parts.length; i++) {
-    bookAbbr = parts.slice(0, i + 1).join(" ");
-    if (bookAbbreviations[bookAbbr]) {
-      chapter = parts.slice(i + 1).join(" ");
-      break;
+    let bookAbbr = ""
+    let chapter = ""
+    for (let i = 0; i < parts.length; i++) {
+      bookAbbr = parts.slice(0, i + 1).join(" ")
+      if (bookAbbreviations[bookAbbr]) {
+        chapter = parts.slice(i + 1).join(" ")
+        break
+      }
     }
-  }
 
-  if (!bookAbbreviations[bookAbbr] || !/^\d+$/.test(chapter)) {
-    return null;
-  }
+    if (!bookAbbreviations[bookAbbr] || !/^\d+$/.test(chapter)) {
+      return null
+    }
 
-  return { book: bookAbbreviations[bookAbbr], chapter: parseInt(chapter) };
-};
+    return { book: bookAbbreviations[bookAbbr], chapter: Number.parseInt(chapter) }
+  }
 
   // دالة لمعالجة البحث المباشر عند الضغط على Enter
   const handleBooksSearch = () => {
-  const parsed = parseBookChapter(searchQuery);
-  if (parsed) {
-    const { book, chapter } = parsed;
-    const bookData = bookMap[book];
-    if (bookData) {
-      const chapterData = bookData.chapters.find((ch) => ch.number === chapter);
-      if (chapterData) {
-        const verses = chapterData.verses.map(
-          (verse) => `${book} ${chapter}:${verse.number}\n${verse.text}`
-        );
-        setSelectedBook(book);
-        setSelectedChapter(chapter.toString());
-        setChapterText(verses);
-        setCurrentSlide(0);
-        setShowFullScreen(true);
-        document.documentElement.requestFullscreen().catch((err) =>
-          console.warn("Error enabling fullscreen:", err)
-        );
-        setSearchQuery("");
-        setShowSearchDropdown(false);
-        addToRecentBibleSearches(searchQuery);
+    const parsed = parseBookChapter(searchQuery)
+    if (parsed) {
+      const { book, chapter } = parsed
+      const bookData = bookMap[book]
+      if (bookData) {
+        const chapterData = bookData.chapters.find((ch) => ch.number === chapter)
+        if (chapterData) {
+          const verses = chapterData.verses.map((verse) => `${book} ${chapter}:${verse.number}\n${verse.text}`)
+          setSelectedBook(book)
+          setSelectedChapter(chapter.toString())
+          setChapterText(verses)
+          setCurrentSlide(0)
+          setShowFullScreen(true)
+          document.documentElement.requestFullscreen().catch((err) => console.warn("Error enabling fullscreen:", err))
+          setSearchQuery("")
+          setShowSearchDropdown(false)
+          addToRecentBibleSearches(searchQuery)
+        } else {
+          setError(`الاصحاح ${chapter} غير موجود في ${book}.`)
+        }
       } else {
-        setError(`الاصحاح ${chapter} غير موجود في ${book}.`);
+        setError(`السفر "${book}" غير موجود.`)
       }
     } else {
-      setError(`السفر "${book}" غير موجود.`);
+      setError("يرجى إدخال اختصار صحيح مثل 'مت 2' أو '1 يو 3'.")
     }
-  } else {
-    setError("يرجى إدخال اختصار صحيح مثل 'مت 2' أو '1 يو 3'.");
   }
-};
 
   // Function to handle selection of a verse from search results
-  const handleVerseResultSelect = useCallback((result: SearchResult) => {
-    setSelectedBook(result.book);
-    setSelectedChapter(result.chapter.toString());
-    // This will trigger the useEffect to load the chapter and display it in fullscreen.
-    // The favorite button will then have the correct selectedBook and selectedChapter.
-    setVerseSearchResults([]); // Clear the list of verse search results
-    // Consider clearing searchQuery as well if appropriate for UX
-    // setSearchQuery(""); 
-  }, [setSelectedBook, setSelectedChapter, setVerseSearchResults]);
+  const handleVerseResultSelect = useCallback(
+    (result: SearchResult) => {
+      setSelectedBook(result.book)
+      setSelectedChapter(result.chapter.toString())
+      // This will trigger the useEffect to load the chapter and display it in fullscreen.
+      // The favorite button will then have the correct selectedBook and selectedChapter.
+      setVerseSearchResults([]) // Clear the list of verse search results
+      // Consider clearing searchQuery as well if appropriate for UX
+      // setSearchQuery("");
+    },
+    [setSelectedBook, setSelectedChapter, setVerseSearchResults],
+  )
 
-  const removeArabicDiacritics = (text: string): string => {    
-      return text
+  const removeArabicDiacritics = (text: string): string => {
+    return text
       .normalize("NFD")
       .replace(/[\u0610-\u061A\u064B-\u065F]/g, "")
-      .normalize("NFC");
-  };
+      .normalize("NFC")
+  }
 
   const handleVerseSearch = () => {
-    if (!bibleData || !searchQuery.trim()) return;
-    const query = removeArabicDiacritics(searchQuery.toLowerCase().trim());
-    const results: SearchResult[] = [];
-    const startTime = performance.now();
+    if (!bibleData || !searchQuery.trim()) return
+    const query = removeArabicDiacritics(searchQuery.toLowerCase().trim())
+    const results: SearchResult[] = []
+    const startTime = performance.now()
 
     // استخدام flatMap لتسريع البحث
     const allVerses = bibleData
@@ -583,320 +570,319 @@ export default function TextBible() {
           chapter: chapter.number,
           verse: verse.number,
           text: verse.text,
-        }))
-      );
+        })),
+      )
 
     allVerses.forEach((verse) => {
-      const verseText = removeArabicDiacritics(verse.text.toLowerCase());
+      const verseText = removeArabicDiacritics(verse.text.toLowerCase())
       if (verseText.includes(query)) {
-        results.push(verse);
+        results.push(verse)
       }
-    });
+    })
 
-    const endTime = performance.now();
-    console.log(`Verse search took ${(endTime - startTime).toFixed(2)}ms`);
+    const endTime = performance.now()
+    console.log(`Verse search took ${(endTime - startTime).toFixed(2)}ms`)
 
-    setVerseSearchResults(results);
-    setShowSearchDropdown(true);
-    addToRecentBibleSearches(searchQuery);
-  };
+    setVerseSearchResults(results)
+    setShowSearchDropdown(true)
+    addToRecentBibleSearches(searchQuery)
+  }
 
   const handleVoiceSearch = () => {
     if (!recognition) {
-      setVoiceError("متصفحك لا يدعم البحث الصوتي. جرب Chrome او Edge.");
-      return;
+      setVoiceError("متصفحك لا يدعم البحث الصوتي. جرب Chrome او Edge.")
+      return
     }
     if (!navigator.onLine) {
-      setVoiceError("تحتاج الى الاتصال بالانترنت لاستخدام البحث الصوتي.");
-      return;
+      setVoiceError("تحتاج الى الاتصال بالانترنت لاستخدام البحث الصوتي.")
+      return
     }
-    setVoiceError(null);
-    setIsListening((prev) => !prev);
+    setVoiceError(null)
+    setIsListening((prev) => !prev)
     if (!isListening) {
       try {
-        recognition.start();
+        recognition.start()
       } catch (err) {
-        console.error("خطا اثناء بدء التسجيل:", err);
-        setVoiceError("فشل بدء التسجيل. تاكد من اعدادات الميكروفون.");
-        setIsListening(false);
-        return;
+        console.error("خطا اثناء بدء التسجيل:", err)
+        setVoiceError("فشل بدء التسجيل. تاكد من اعدادات الميكروفون.")
+        setIsListening(false)
+        return
       }
       recognition.onresult = (event) => {
         if (event.results.length > 0) {
-          const transcript = event.results[0][0].transcript;
-          setSearchQuery(transcript);
-          addToRecentBibleSearches(transcript);
+          const transcript = event.results[0][0].transcript
+          setSearchQuery(transcript)
+          addToRecentBibleSearches(transcript)
           if (searchMode === "verses") {
-            handleVerseSearch();
+            handleVerseSearch()
           } else {
-            handleBooksSearch();
+            handleBooksSearch()
           }
         } else {
-          setVoiceError("لم يتم التعرف على اي كلام. حاول التحدث بصوت اعلى.");
+          setVoiceError("لم يتم التعرف على اي كلام. حاول التحدث بصوت اعلى.")
         }
-        setIsListening(false);
-      };
+        setIsListening(false)
+      }
       recognition.onerror = (event) => {
-        setIsListening(false);
-        let errorMessage = "حدث خطا اثناء البحث الصوتي: ";
+        setIsListening(false)
+        let errorMessage = "حدث خطا اثناء البحث الصوتي: "
         switch (event.error) {
           case "no-speech":
-            errorMessage += "لم يتم التعرف على اي صوت.";
-            break;
+            errorMessage += "لم يتم التعرف على اي صوت."
+            break
           case "audio-capture":
-            errorMessage += "فشل التقاط الصوت. تاكد من الميكروفون.";
-            break;
+            errorMessage += "فشل التقاط الصوت. تاكد من الميكروفون."
+            break
           case "not-allowed":
-            errorMessage += "لم يتم منح اذن الميكروفون.";
-            break;
+            errorMessage += "لم يتم منح اذن الميكروفون."
+            break
           case "network":
-            errorMessage += "فشل الاتصال بالخادم.";
-            break;
+            errorMessage += "فشل الاتصال بالخادم."
+            break
           default:
-            errorMessage += event.error;
+            errorMessage += event.error
         }
-        setVoiceError(errorMessage);
-      };
-      recognition.onend = () => setIsListening(false);
+        setVoiceError(errorMessage)
+      }
+      recognition.onend = () => setIsListening(false)
     } else {
-      recognition.stop();
+      recognition.stop()
     }
-  };
+  }
 
   useEffect(() => {
     return () => {
-      if (recognition && isListening) recognition.stop();
-    };
-  }, [isListening, recognition]);
+      if (recognition && isListening) recognition.stop()
+    }
+  }, [isListening, recognition])
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedSearches = localStorage.getItem("recentBibleSearches");
-      if (savedSearches) setRecentBibleSearches(JSON.parse(savedSearches));
-      const savedFavorites = localStorage.getItem("favoriteBibleChapters");
-      if (savedFavorites) setFavoriteBibleChapters(JSON.parse(savedFavorites));
+      const savedSearches = localStorage.getItem("recentBibleSearches")
+      if (savedSearches) setRecentBibleSearches(JSON.parse(savedSearches))
+      const savedFavorites = localStorage.getItem("favoriteBibleChapters")
+      if (savedFavorites) setFavoriteBibleChapters(JSON.parse(savedFavorites))
     }
-  }, []);
+  }, [])
 
   const addToRecentBibleSearches = (query: string) => {
-    if (!query.trim()) return;
+    if (!query.trim()) return
     setRecentBibleSearches((prev) => {
-      const newSearches = [query, ...prev.filter((s) => s !== query)].slice(0, 5);
+      const newSearches = [query, ...prev.filter((s) => s !== query)].slice(0, 5)
       if (typeof window !== "undefined") {
-        localStorage.setItem("recentBibleSearches", JSON.stringify(newSearches));
+        localStorage.setItem("recentBibleSearches", JSON.stringify(newSearches))
       }
-      return newSearches;
-    });
-  };
+      return newSearches
+    })
+  }
 
   const nextSlide = useCallback(() => {
-    if (currentSlide < chapterText.length - 1) setCurrentSlide(currentSlide + 1);
-  }, [currentSlide, chapterText]);
+    if (currentSlide < chapterText.length - 1) setCurrentSlide(currentSlide + 1)
+  }, [currentSlide, chapterText])
 
   const previousSlide = useCallback(() => {
-    if (currentSlide > 0) setCurrentSlide(currentSlide - 1);
-  }, [currentSlide]);
+    if (currentSlide > 0) setCurrentSlide(currentSlide - 1)
+  }, [currentSlide])
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartX(e.targetTouches[0].clientX);
-    setTouchEndX(null);
-  };
+    setTouchStartX(e.targetTouches[0].clientX)
+    setTouchEndX(null)
+  }
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEndX(e.targetTouches[0].clientX);
-  };
+    setTouchEndX(e.targetTouches[0].clientX)
+  }
 
   const handleTouchEnd = () => {
-    if (!touchStartX || !touchEndX) return;
-    const deltaX = touchStartX - touchEndX;
-    const swipeThreshold = 50;
-    if (deltaX > swipeThreshold) nextSlide();
-    else if (deltaX < -swipeThreshold) previousSlide();
-    setTouchStartX(null);
-    setTouchEndX(null);
-  };
+    if (!touchStartX || !touchEndX) return
+    const deltaX = touchStartX - touchEndX
+    const swipeThreshold = 50
+    if (deltaX > swipeThreshold) nextSlide()
+    else if (deltaX < -swipeThreshold) previousSlide()
+    setTouchStartX(null)
+    setTouchEndX(null)
+  }
 
   const exitFullScreen = useCallback(() => {
-    setShowFullScreen(false);
+    setShowFullScreen(false)
     if (document.fullscreenElement) {
-      document.exitFullscreen().catch((err) =>
-        console.warn("Error exiting fullscreen:", err)
-      );
+      document.exitFullscreen().catch((err) => console.warn("Error exiting fullscreen:", err))
     }
     if (autoAdvanceTimerRef.current) {
-      clearInterval(autoAdvanceTimerRef.current);
-      autoAdvanceTimerRef.current = null;
+      clearInterval(autoAdvanceTimerRef.current)
+      autoAdvanceTimerRef.current = null
     }
-  }, []);
+  }, [])
 
   const handleUploadBackground = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]
     if (file) {
-      const validImageTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "image/webp",
-        "image/bmp",
-        "image/tiff",
-      ];
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp", "image/tiff"]
       if (!validImageTypes.includes(file.type)) {
-        alert("يرجى اختيار ملف صورة (مثل PNG، JPG، GIF، الخ).");
-        return;
+        alert("يرجى اختيار ملف صورة (مثل PNG، JPG، GIF، الخ).")
+        return
       }
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
+        const imageUrl = e.target?.result as string
         const newTheme: Theme = {
           name: `مخصص ${customThemes.length + 1}`,
           background: "",
           text: "text-white",
           isCustom: true,
           customUrl: imageUrl,
-        };
-        setCustomThemes((prev) => [...prev, newTheme]);
-        setCurrentTheme(newTheme);
-      };
-      reader.readAsDataURL(file);
+        }
+        setCustomThemes((prev) => [...prev, newTheme])
+        setCurrentTheme(newTheme)
+      }
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   const handleUploadImage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]
     if (file) {
-      const validImageTypes = [
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "image/webp",
-        "image/bmp",
-        "image/tiff",
-      ];
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/bmp", "image/tiff"]
       if (!validImageTypes.includes(file.type)) {
-        alert("يرجى اختيار ملف صورة (مثل PNG، JPG، GIF، الخ).");
-        return;
+        alert("يرجى اختيار ملف صورة (مثل PNG، JPG، GIF، الخ).")
+        return
       }
-      const reader = new FileReader();
-      reader.onload = (e) => setBackgroundImage(e.target?.result as string);
-      reader.readAsDataURL(file);
+      const reader = new FileReader()
+      reader.onload = (e) => setBackgroundImage(e.target?.result as string)
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (!showFullScreen || !chapterText.length) return;
-      if (event.key === "ArrowRight" || event.key === "ArrowUp") previousSlide();
-      else if (event.key === "ArrowLeft" || event.key === "ArrowDown") nextSlide();
-      else if (event.key === "Escape") exitFullScreen();
-    };
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [showFullScreen, currentSlide, chapterText, exitFullScreen, nextSlide, previousSlide]);
+      if (!showFullScreen || !chapterText.length) return
+      if (event.key === "ArrowRight" || event.key === "ArrowUp") previousSlide()
+      else if (event.key === "ArrowLeft" || event.key === "ArrowDown") nextSlide()
+      else if (event.key === "Escape") exitFullScreen()
+    }
+    window.addEventListener("keydown", handleKeyPress)
+    return () => window.removeEventListener("keydown", handleKeyPress)
+  }, [showFullScreen, currentSlide, chapterText, exitFullScreen, nextSlide, previousSlide])
 
   useEffect(() => {
     if (showFullScreen && autoAdvance && chapterText.length > 0) {
-      if (autoAdvanceTimerRef.current) clearInterval(autoAdvanceTimerRef.current);
+      if (autoAdvanceTimerRef.current) clearInterval(autoAdvanceTimerRef.current)
       autoAdvanceTimerRef.current = setInterval(() => {
         if (currentSlide < chapterText.length - 1) {
-          setCurrentSlide((prev) => prev + 1);
+          setCurrentSlide((prev) => prev + 1)
         } else {
-          clearInterval(autoAdvanceTimerRef.current!);
-          autoAdvanceTimerRef.current = null;
+          clearInterval(autoAdvanceTimerRef.current!)
+          autoAdvanceTimerRef.current = null
         }
-      }, autoAdvanceInterval * 1000);
+      }, autoAdvanceInterval * 1000)
       return () => {
-        if (autoAdvanceTimerRef.current) clearInterval(autoAdvanceTimerRef.current);
-      };
+        if (autoAdvanceTimerRef.current) clearInterval(autoAdvanceTimerRef.current)
+      }
     }
-  }, [showFullScreen, autoAdvance, autoAdvanceInterval, currentSlide, chapterText]);
+  }, [showFullScreen, autoAdvance, autoAdvanceInterval, currentSlide, chapterText])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowSearchDropdown(false);
+        setShowSearchDropdown(false)
       }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const toggleFavorite = useCallback((bookChapter: string) => {
     setFavoriteBibleChapters((prev) => {
       const newFavorites = prev.includes(bookChapter)
         ? prev.filter((fav) => fav !== bookChapter)
-        : [...prev, bookChapter];
+        : [...prev, bookChapter]
       if (typeof window !== "undefined") {
-        localStorage.setItem("favoriteBibleChapters", JSON.stringify(newFavorites));
+        localStorage.setItem("favoriteBibleChapters", JSON.stringify(newFavorites))
       }
-      return newFavorites;
-    });
-  }, []);
+      return newFavorites
+    })
+  }, [])
 
   const saveSettings = () => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("globalFontSize", globalFontSize.toString());
+      localStorage.setItem("globalFontSize", globalFontSize.toString())
     }
-    setShowSettings(false);
-  };
+    setShowSettings(false)
+  }
+
+  // Font size control functions
+  const increaseFontSize = useCallback(() => {
+    const newSize = Math.min(globalFontSize + 4, 120) // Max font size 120px
+    setGlobalFontSize(newSize)
+    if (typeof window !== "undefined") {
+      localStorage.setItem("globalFontSize", newSize.toString())
+    }
+  }, [globalFontSize])
 
   const calculateDynamicFontSize = (text: string, maxWidth: number, maxHeight: number) => {
-    const textLength = text.length;
-    const baseFontSize = globalFontSize;
-    const minFontSize = 20;
-    const maxFontSize = 96;
+    const textLength = text.length
+    const baseFontSize = globalFontSize
+    const minFontSize = 20
+    const maxFontSize = 120
 
     // تحديد الحد الأقصى للحجم بناءً على طول النص
-    let adjustedFontSize = baseFontSize;
+    let adjustedFontSize = baseFontSize
     if (textLength < 50) {
-      adjustedFontSize = Math.min(baseFontSize * 1.2, maxFontSize);
+      adjustedFontSize = Math.min(baseFontSize * 1.2, maxFontSize)
     } else if (textLength > 200) {
-      adjustedFontSize = Math.max(baseFontSize * 0.6, minFontSize);
+      adjustedFontSize = Math.max(baseFontSize * 0.6, minFontSize)
     } else {
-      adjustedFontSize = baseFontSize * (1 - (textLength - 50) / 150 * 0.4);
+      adjustedFontSize = baseFontSize * (1 - ((textLength - 50) / 150) * 0.4)
     }
 
     // التأكد من أن النص يتناسب داخل الشريحة
-    const container = document.querySelector(".slide-container") as HTMLElement | null;
+    const container = document.querySelector(".slide-container") as HTMLElement | null
     if (container) {
-      const containerWidth = container.offsetWidth * 0.9; // 90% of container width
-      const containerHeight = container.offsetHeight * 0.9; // 90% of container height
-      const tempElement = document.createElement("div");
-      tempElement.style.fontSize = `${adjustedFontSize}px`;
-      tempElement.style.fontFamily = '"Noto Sans Arabic", sans-serif';
-      tempElement.style.fontWeight = "900";
-      tempElement.style.position = "absolute";
-      tempElement.style.visibility = "hidden";
-      tempElement.style.whiteSpace = "pre-wrap";
-      tempElement.textContent = text;
-      document.body.appendChild(tempElement);
+      const containerWidth = container.offsetWidth * 0.9 // 90% of container width
+      const containerHeight = container.offsetHeight * 0.9 // 90% of container height
+      const tempElement = document.createElement("div")
+      tempElement.style.fontSize = `${adjustedFontSize}px`
+      tempElement.style.fontFamily = '"Noto Sans Arabic", sans-serif'
+      tempElement.style.fontWeight = "900"
+      tempElement.style.position = "absolute"
+      tempElement.style.visibility = "hidden"
+      tempElement.style.whiteSpace = "pre-wrap"
+      tempElement.textContent = text
+      document.body.appendChild(tempElement)
 
-      let height = tempElement.offsetHeight;
-      let width = tempElement.offsetWidth;
+      let height = tempElement.offsetHeight
+      let width = tempElement.offsetWidth
 
-      document.body.removeChild(tempElement);
+      document.body.removeChild(tempElement)
 
       // تقليل الحجم إذا كان النص يتجاوز الحدود
       while ((width > containerWidth || height > containerHeight) && adjustedFontSize > minFontSize) {
-        adjustedFontSize -= 2;
-        tempElement.style.fontSize = `${adjustedFontSize}px`;
-        height = tempElement.offsetHeight;
-        width = tempElement.offsetWidth;
+        adjustedFontSize -= 2
+        tempElement.style.fontSize = `${adjustedFontSize}px`
+        height = tempElement.offsetHeight
+        width = tempElement.offsetWidth
       }
 
-      return Math.max(adjustedFontSize, minFontSize);
+      return Math.max(adjustedFontSize, minFontSize)
     }
 
-    return Math.max(adjustedFontSize, minFontSize);
-  };
+    return Math.max(adjustedFontSize, minFontSize)
+  }
+
+  const decreaseFontSize = useCallback(() => {
+    const newSize = Math.max(globalFontSize - 4, 20) // Min font size 20px
+    setGlobalFontSize(newSize)
+    if (typeof window !== "undefined") {
+      localStorage.setItem("globalFontSize", newSize.toString())
+    }
+  }, [globalFontSize])
 
   return (
     <div className={`relative min-h-screen bg-background ${theme === "dark" ? "dark" : ""}`}>
       {!showFullScreen ? (
         <div className="p-4 sm:p-6 w-full">
           <div className="flex flex-col items-center mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-center mb-2 text-foreground">
-              الكتاب المقدس
-            </h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-center mb-2 text-foreground">الكتاب المقدس</h1>
             <p className="text-muted-foreground text-center max-w-md text-sm sm:text-base font-semibold">
               ابحث في الكتاب المقدس وعرض النصوص بطريقة احترافية
             </p>
@@ -915,9 +901,7 @@ export default function TextBible() {
                   <button
                     onClick={() => setSearchMode("books")}
                     className={`flex items-center gap-1 px-3 py-2 rounded-full ${
-                      searchMode === "books"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
+                      searchMode === "books" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                     } transition-colors duration-200`}
                     aria-label="بحث في الاسفار"
                   >
@@ -927,9 +911,7 @@ export default function TextBible() {
                   <button
                     onClick={() => setSearchMode("verses")}
                     className={`flex items-center gap-1 px-3 py-2 rounded-full ${
-                      searchMode === "verses"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
+                      searchMode === "verses" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                     } transition-colors duration-200`}
                     aria-label="بحث في الآيات"
                   >
@@ -944,27 +926,22 @@ export default function TextBible() {
                       ref={searchInputRef}
                       value={searchQuery}
                       onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setError(null);
+                        setSearchQuery(e.target.value)
+                        setError(null)
                         if (e.target.value.trim()) {
-                          setShowRecentSearches(false);
+                          setShowRecentSearches(false)
                         }
                       }}
                       onKeyPress={(e) => {
                         if (e.key === "Enter") {
-                          if (searchMode === "verses") handleVerseSearch();
-                          else if (searchMode === "books") handleBooksSearch();
+                          if (searchMode === "verses") handleVerseSearch()
+                          else if (searchMode === "books") handleBooksSearch()
                         }
                       }}
                       onFocus={() => {
-                        if (!searchQuery.trim() && recentBibleSearches.length > 0)
-                          setShowRecentSearches(true);
+                        if (!searchQuery.trim() && recentBibleSearches.length > 0) setShowRecentSearches(true)
                       }}
-                      placeholder={
-                        searchMode === "books"
-                          ? "    ابحث مثل 'مت 2' او '1 يو 3'"
-                          : "ابحث في الآيات..."
-                      }
+                      placeholder={searchMode === "books" ? "    ابحث مثل 'مت 2' او '1 يو 3'" : "ابحث في الآيات..."}
                       className={`w-full pr-4 py-3 sm:py-4 text-sm sm:text-base rounded-xl border-2 ${
                         theme === "dark" ? "border-white" : "border-black"
                       } bg-card text-foreground shadow-xl transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-ring focus:border-${
@@ -1043,55 +1020,43 @@ export default function TextBible() {
                         <button
                           key={index}
                           onClick={() => {
-                            const bookData = bookMap[result.book];
+                            const bookData = bookMap[result.book]
                             if (bookData) {
-                              const chapterData = bookData.chapters.find(
-                                (ch) => ch.number === result.chapter
-                              );
+                              const chapterData = bookData.chapters.find((ch) => ch.number === result.chapter)
                               if (chapterData) {
                                 const verses = chapterData.verses.map(
-                                  (verse) =>
-                                    `${result.book} ${result.chapter}:${verse.number}\n${verse.text}`
-                                );
-                                setSelectedBook(result.book);
-                                setSelectedChapter(result.chapter.toString());
-                                setChapterText(verses);
-                                setCurrentSlide(result.verse - 1);
-                                setShowFullScreen(true);
-                                document.documentElement.requestFullscreen().catch((err) =>
-                                  console.warn("Error enabling fullscreen:", err)
-                                );
-                                setShowSearchDropdown(false);
+                                  (verse) => `${result.book} ${result.chapter}:${verse.number}\n${verse.text}`,
+                                )
+                                setSelectedBook(result.book)
+                                setSelectedChapter(result.chapter.toString())
+                                setChapterText(verses)
+                                setCurrentSlide(result.verse - 1)
+                                setShowFullScreen(true)
+                                document.documentElement
+                                  .requestFullscreen()
+                                  .catch((err) => console.warn("Error enabling fullscreen:", err))
+                                setShowSearchDropdown(false)
                               }
                             }
                           }}
                           className="w-full text-right px-4 py-3 text-sm hover:bg-muted transition-colors border-b last:border-b-0"
                         >
-                          {`${result.book} ${result.chapter}:${result.verse} - ${result.text.substring(
-                            0,
-                            50
-                          )}...`}
+                          {`${result.book} ${result.chapter}:${result.verse} - ${result.text.substring(0, 50)}...`}
                         </button>
                       ))}
                     </motion.div>
                   )}
                 </AnimatePresence>
-                {showSearchDropdown &&
-                  searchMode === "books" &&
-                  filteredBooks.length === 0 &&
-                  searchQuery && (
-                    <div className="absolute w-full mt-2 bg-card border border-border rounded-xl shadow-2xl p-2 text-right text-destructive z-50">
-                      لا توجد اسفار مطابقة
-                    </div>
-                  )}
-                {showSearchDropdown &&
-                  searchMode === "verses" &&
-                  verseSearchResults.length === 0 &&
-                  searchQuery && (
-                    <div className="absolute w-full mt-2 bg-card border border-border rounded-xl shadow-2xl p-2 text-right text-destructive z-50">
-                      لا توجد آيات مطابقة
-                    </div>
-                  )}
+                {showSearchDropdown && searchMode === "books" && filteredBooks.length === 0 && searchQuery && (
+                  <div className="absolute w-full mt-2 bg-card border border-border rounded-xl shadow-2xl p-2 text-right text-destructive z-50">
+                    لا توجد اسفار مطابقة
+                  </div>
+                )}
+                {showSearchDropdown && searchMode === "verses" && verseSearchResults.length === 0 && searchQuery && (
+                  <div className="absolute w-full mt-2 bg-card border border-border rounded-xl shadow-2xl p-2 text-right text-destructive z-50">
+                    لا توجد آيات مطابقة
+                  </div>
+                )}
               </div>
 
               {isListening && (
@@ -1101,9 +1066,7 @@ export default function TextBible() {
               )}
 
               {voiceError && (
-                <div className="text-destructive text-sm mt-3 text-center font-semibold">
-                  {voiceError}
-                </div>
+                <div className="text-destructive text-sm mt-3 text-center font-semibold">{voiceError}</div>
               )}
 
               <AnimatePresence>
@@ -1171,11 +1134,7 @@ export default function TextBible() {
                   </SelectContent>
                 </Select>
 
-                <Select
-                  value={selectedChapter}
-                  onValueChange={(v) => setSelectedChapter(v)}
-                  disabled={!selectedBook}
-                >
+                <Select value={selectedChapter} onValueChange={(v) => setSelectedChapter(v)} disabled={!selectedBook}>
                   <SelectTrigger
                     className={`bg-card text-foreground border-2 ${
                       theme === "dark" ? "border-white" : "border-black"
@@ -1204,15 +1163,15 @@ export default function TextBible() {
                   <h2 className="text-lg sm:text-xl font-bold mb-4 text-foreground">المفضلة</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {favoriteBibleChapters.map((fav, index) => {
-                      const [book, chapter] = fav.split(":");
+                      const [book, chapter] = fav.split(":")
                       return (
                         <Card key={index} className="overflow-hidden hover:shadow-md transition-all">
                           <CardContent className="p-4 flex justify-between items-center">
                             <button
                               className="flex-1 text-right font-semibold text-foreground"
                               onClick={() => {
-                                setSelectedBook(book);
-                                setSelectedChapter(chapter);
+                                setSelectedBook(book)
+                                setSelectedChapter(chapter)
                               }}
                             >
                               {book} {chapter}
@@ -1225,7 +1184,7 @@ export default function TextBible() {
                             </button>
                           </CardContent>
                         </Card>
-                      );
+                      )
                     })}
                   </div>
                 </div>
@@ -1256,12 +1215,10 @@ export default function TextBible() {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            {currentTheme.isCustom && currentTheme.customUrl && (
-              <div className="absolute inset-0 bg-black/50 z-10" />
-            )}
+            {currentTheme.isCustom && currentTheme.customUrl && <div className="absolute inset-0 bg-black/50 z-10" />}
             {backgroundImage && (
               <img
-                src={backgroundImage}
+                src={backgroundImage || "/placeholder.svg"}
                 alt="Background Image"
                 className="absolute z-15"
                 style={{
@@ -1291,7 +1248,11 @@ export default function TextBible() {
                       style={{
                         fontSize: `${
                           chapterText[currentSlide]
-                            ? calculateDynamicFontSize(chapterText[currentSlide], window.innerWidth * 0.9, window.innerHeight * 0.9)
+                            ? calculateDynamicFontSize(
+                                chapterText[currentSlide],
+                                window.innerWidth * 0.9,
+                                window.innerHeight * 0.9,
+                              )
                             : globalFontSize
                         }px`,
                         lineHeight: `${lineSpacing}`,
@@ -1344,6 +1305,86 @@ export default function TextBible() {
                 </div>
               )}
             </motion.div>
+
+            {/* Font Size Control Buttons */}
+            {displayMode === "slides" && chapterText.length > 0 && (
+              <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 flex items-center gap-4 z-30">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={decreaseFontSize}
+                        className="w-14 h-14 rounded-full bg-black/70 hover:bg-black/80 text-white flex items-center justify-center shadow-lg backdrop-blur-sm transition-all duration-200 border border-white/20"
+                        disabled={globalFontSize <= 20}
+                      >
+                        <div className="flex items-center justify-center">
+                          <span className="text-lg font-bold mr-1">A</span>
+                          <Minus className="h-4 w-4" />
+                        </div>
+                      </motion.button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-black/80 text-white border-white/20">
+                      تصغير الخط ({globalFontSize}px)
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <div className="text-white/80 text-sm font-medium bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm">
+                    {globalFontSize}px
+                  </div>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={increaseFontSize}
+                        className="w-14 h-14 rounded-full bg-black/70 hover:bg-black/80 text-white flex items-center justify-center shadow-lg backdrop-blur-sm transition-all duration-200 border border-white/20"
+                        disabled={globalFontSize >= 120}
+                      >
+                        <div className="flex items-center justify-center">
+                          <span className="text-xl font-bold mr-1">A</span>
+                          <Plus className="h-4 w-4" />
+                        </div>
+                      </motion.button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-black/80 text-white border-white/20">
+                      تكبير الخط ({globalFontSize}px)
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            {displayMode === "slides" && chapterText.length > 1 && (
+              <>
+                <button
+                  onClick={previousSlide}
+                  disabled={currentSlide === 0}
+                  className="fixed left-8 bottom-16 p-4 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed z-30"
+                  aria-label="الشريحة السابقة"
+                >
+                  <ChevronRight className="h-8 w-8" />
+                </button>
+                <button
+                  onClick={nextSlide}
+                  disabled={currentSlide === chapterText.length - 1}
+                  className="fixed right-8 bottom-16 p-4 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed z-30"
+                  aria-label="الشريحة التالية"
+                >
+                  <ChevronLeft className="h-8 w-8" />
+                </button>
+              </>
+            )}
+
+            {/* Slide Counter */}
+            {displayMode === "slides" && chapterText.length > 1 && (
+              <div className="fixed bottom-8 left-8 bg-black/50 text-white px-4 py-2 rounded-full text-sm backdrop-blur-sm z-30">
+                {currentSlide + 1} / {chapterText.length}
+              </div>
+            )}
 
             <div className="fixed top-8 left-8 flex items-center gap-4 sm:gap-6 z-30">
               <button
@@ -1478,7 +1519,7 @@ export default function TextBible() {
                             </div>
                             <Slider
                               min={20}
-                              max={96}
+                              max={120}
                               step={2}
                               value={[globalFontSize]}
                               onValueChange={(value) => setGlobalFontSize(value[0])}
@@ -1548,10 +1589,7 @@ export default function TextBible() {
 
                         <TabsContent value="advanced" className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <Label
-                              htmlFor="display-mode"
-                              className="text-xs xs:text-sm text-white font-semibold"
-                            >
+                            <Label htmlFor="display-mode" className="text-xs xs:text-sm text-white font-semibold">
                               وضع العرض
                             </Label>
                             <div className="flex items-center space-x-2">
@@ -1559,7 +1597,7 @@ export default function TextBible() {
                                 size="sm"
                                 variant={displayMode === "slides" ? "default" : "outline"}
                                 onClick={() => setDisplayMode("slides")}
-                                className={`${ 
+                                className={`${
                                   displayMode === "slides"
                                     ? "bg-blue-600 text-white"
                                     : "bg-gray-700 text-white border-gray-500"
@@ -1572,7 +1610,7 @@ export default function TextBible() {
                                 size="sm"
                                 variant={displayMode === "list" ? "default" : "outline"}
                                 onClick={() => setDisplayMode("list")}
-                                className={`${ 
+                                className={`${
                                   displayMode === "list"
                                     ? "bg-blue-600 text-white"
                                     : "bg-gray-700 text-white border-gray-500"
@@ -1585,10 +1623,7 @@ export default function TextBible() {
                           </div>
 
                           <div className="flex items-center justify-between">
-                            <Label
-                              htmlFor="auto-advance"
-                              className="text-xs xs:text-sm text-white font-semibold"
-                            >
+                            <Label htmlFor="auto-advance" className="text-xs xs:text-sm text-white font-semibold">
                               تقدم تلقائي
                             </Label>
                             <Switch
@@ -1698,6 +1733,7 @@ export default function TextBible() {
                               <p>استخدم مفاتيح الاسهم للتنقل بين الشرائح</p>
                               <p>اضغط ESC للخروج من وضع ملء الشاشة</p>
                               <p>اسحب يمينًا او يسارًا على الموبايل للتنقل</p>
+                              <p>استخدم أزرار A+ و A- أسفل الشاشة لتغيير حجم الخط</p>
                             </div>
                           </div>
                         </TabsContent>
@@ -1746,16 +1782,16 @@ export default function TextBible() {
                     <TooltipTrigger asChild>
                       <button
                         onClick={() => {
-                          const content = chapterText.join("\n\n");
-                          const blob = new Blob([content], { type: "text/plain" });
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement("a");
-                          a.href = url;
-                          a.download = `${selectedBook}_${selectedChapter}.txt`;
-                          document.body.appendChild(a);
-                          a.click();
-                          document.body.removeChild(a);
-                          URL.revokeObjectURL(url);
+                          const content = chapterText.join("\n\n")
+                          const blob = new Blob([content], { type: "text/plain" })
+                          const url = URL.createObjectURL(blob)
+                          const a = document.createElement("a")
+                          a.href = url
+                          a.download = `${selectedBook}_${selectedChapter}.txt`
+                          document.body.appendChild(a)
+                          a.click()
+                          document.body.removeChild(a)
+                          URL.revokeObjectURL(url)
                         }}
                         className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200"
                         aria-label="تنزيل"
@@ -1764,9 +1800,7 @@ export default function TextBible() {
                         <Download className="h-6 w-6" />
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent>
-                      تنزيل النص
-                    </TooltipContent>
+                    <TooltipContent>تنزيل النص</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
@@ -1775,5 +1809,5 @@ export default function TextBible() {
         </AnimatePresence>
       )}
     </div>
-  );
+  )
 }
