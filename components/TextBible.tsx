@@ -882,7 +882,7 @@ export default function TextBible() {
       {!showFullScreen ? (
         <div className="p-4 sm:p-6 w-full">
           <div className="flex flex-col items-center mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-center mb-2 text-foreground">الكتاب المقدس</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-center mb-2 text-foreground">الـــكــــــتـــــاب الـــمــــقــــــدس</h1>
             <p className="text-muted-foreground text-center max-w-md text-sm sm:text-base font-semibold">
               ابحث في الكتاب المقدس وعرض النصوص بطريقة احترافية
             </p>
