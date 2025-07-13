@@ -1623,12 +1623,12 @@ export default function HeroSection() {
 
             {/* Font size control buttons - centered at bottom */}
             {displayMode === "slides" && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-30"
-              >
+ <motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: 20 }}
+  className="fixed bottom-8 left-0 right-0 flex justify-center items-center gap-4 z-30"
+>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -1703,3 +1703,4 @@ export default function HeroSection() {
     </div>
   )
 }
+
