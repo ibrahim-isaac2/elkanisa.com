@@ -586,9 +586,10 @@ export default function HeroSection() {
           content.push(...item.chorus)
         }
       })
-    } else if (item.chorus?.length > 0) {
-      content.push(...item.chorus)
-    }
+      
+    } else if (item.chorus && item.chorus.length > 0) {
+  content.push(...item.chorus)
+}
 
     content.push("SITE_ICON_SLIDE")
     return content
