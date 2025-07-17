@@ -579,28 +579,18 @@ export default function HeroSection() {
 
     const content: string[] = []
 
-    // إضافة الكورس إذا كان موجودًا وكان chorusFirst، ثم الأبيات
-    if (item.chorusFirst && item.chorus) {
-      content.push(...item.chorus)
-    }
-
-    // إضافة الأبيات إذا وجدت
-    if (item.verses && item.verses.length > 0) {
-      item.verses.forEach((verse, idx) => {
+    if (item.verses?.length > 0) {
+      item.verses.forEach((verse) => {
         content.push(...verse)
-        if (item.chorus && !item.chorusFirst && idx < item.verses.length - 1) {
-          content.push(...item.chorus) // إضافة الكورس بين الأبيات إذا لم يكن chorusFirst
+        if (item.chorus) {
+          content.push(...item.chorus)
         }
       })
-    }
-    // إضافة الكورس في النهاية إذا لم يتم إضافته مسبقًا وكان موجودًا
-    else if (item.chorus && item.chorus.length > 0) {
+    } else if (item.chorus?.length > 0) {
       content.push(...item.chorus)
     }
 
-    // إضافة الإيقونة في النهاية
     content.push("SITE_ICON_SLIDE")
-
     return content
   }, [])
 
@@ -744,7 +734,7 @@ export default function HeroSection() {
         case "Escape":
           exitFullScreen()
           break
-        case "+":
+        case "Plus":
         case "=":
           increaseFontSize()
           break
@@ -1513,11 +1503,11 @@ export default function HeroSection() {
                                     onValueChange={(value) => setImagePositionX(value[0])}
                                     className="w-full"
                                   />
-                                </div>
-                                <div className="space-y-2 mt-4">
-                                  <Label className="text-xs xs:text-sm text-white font-semibold">
-                                    الموضع العمودي: {imagePositionY}%
-                                  </Label>
+                                  <div className="flex items-center justify-between">
+                                    <Label className="text-xs xs:text-sm text-white font-semibold">
+                                      الموضع العمودي: {imagePositionY}%
+                                    </Label>
+                                  </div>
                                   <Slider
                                     min={0}
                                     max={100}
@@ -1614,7 +1604,8 @@ export default function HeroSection() {
                     <TooltipContent>
                       {selectedItem && playlist.includes(selectedItem.title)
                         ? "إزالة من قائمة التشغيل"
-                        : "إضافة إلى قائمة التشغيل"}
+                        : "إضافة إلى قائمة التشغيل"
+                      }
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -1623,12 +1614,12 @@ export default function HeroSection() {
 
             {/* Font size control buttons - centered at bottom */}
             {displayMode === "slides" && (
- <motion.div
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  exit={{ opacity: 0, y: 20 }}
-  className="fixed bottom-8 left-0 right-0 flex justify-center items-center gap-4 z-30"
->
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="fixed bottom-8 left-0 right-0 flex justify-center items-center gap-4 z-30"
+              >
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -1703,4 +1694,3 @@ export default function HeroSection() {
     </div>
   )
 }
-
