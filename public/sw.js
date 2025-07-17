@@ -49,7 +49,7 @@ workbox.precaching.precacheAndRoute([
   { url: "/_next/static/chunks/pages/DailyVerse.js", revision: "20250714" },
   { url: "/_next/static/chunks/pages/footer.js", revision: "20250714" },
   { url: "/_next/static/chunks/pages/header.js", revision: "20250714" },
-  { url: "/_next/static/chunks/pages/hero-section.js", revision: "20250714" },
+  { url: "/_next/static/chunks/pages/hero-section.js", revision: "20250715" },
   { url: "/_next/static/chunks/pages/install-button.js", revision: "20250714" },
   { url: "/_next/static/chunks/pages/PowerPointSection.js", revision: "20250714" },
   { url: "/_next/static/chunks/pages/SectionHandler.js", revision: "20250714" },
