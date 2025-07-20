@@ -209,6 +209,12 @@ export default function TextBible() {
         font-feature-settings: 'liga' on, 'calt' on;
         text-rendering: optimizeLegibility;
       }
+      .book-name {
+        color: #3b82f6 !important;
+      }
+      .verse-number {
+        color: #3b82f6 !important;
+      }
     `
     document.head.appendChild(style)
 
@@ -268,6 +274,9 @@ export default function TextBible() {
   const [searchMode, setSearchMode] = useState<"books" | "verses">("books")
   const [verseSearchResults, setVerseSearchResults] = useState<SearchResult[]>([])
   const [bookMap, setBookMap] = useState<{ [key: string]: BibleBook }>({})
+  const [chapterInput, setChapterInput] = useState("")
+  const [targetVerseNumber, setTargetVerseNumber] = useState<number | null>(null)
+  const [currentBookChapter, setCurrentBookChapter] = useState<{ book: string; chapter: string } | null>(null)
 
   // Precompute maps for abbreviations for performance optimization
   const bookToAbbrKeysMap = useMemo(() => {
@@ -280,7 +289,7 @@ export default function TextBible() {
       map[fullBookName].push(abbrKey)
     }
     return map
-  }, []) // bookAbbreviations is a global const, so this runs once
+  }, [])
 
   const lowerAbbrToOriginalBookNameMap = useMemo(() => {
     const map: { [lcAbbr: string]: string } = {}
@@ -288,7 +297,7 @@ export default function TextBible() {
       map[abbrKey.toLowerCase()] = bookAbbreviations[abbrKey]
     }
     return map
-  }, []) // bookAbbreviations is a global const, so this runs once
+  }, [])
 
   const [touchStartX, setTouchStartX] = useState<number | null>(null)
   const [touchEndX, setTouchEndX] = useState<number | null>(null)
@@ -353,29 +362,27 @@ export default function TextBible() {
         return response.json()
       })
       .then((rawData: BibleData) => {
-        // Process data: trim book names throughout the structure
         const processedData = rawData.map((section) => ({
           ...section,
           books: section.books.map((book) => ({
             ...book,
-            name: book.name.trim(), // Trim book name
+            name: book.name.trim(),
             chapters: book.chapters.map((ch) => ({
               ...ch,
               verses: ch.verses.map((v) => ({ ...v, text: v.text.trim() })),
             })),
           })),
         }))
-        setBibleData(processedData) // Store the fully processed data
+        setBibleData(processedData)
 
         const allBooksFromProcessedData = processedData.flatMap((section) => section.books)
-        const uniqueBookNames = Array.from(new Set(allBooksFromProcessedData.map((book) => book.name))) // Names are already trimmed
+        const uniqueBookNames = Array.from(new Set(allBooksFromProcessedData.map((book) => book.name)))
         setBooks(uniqueBookNames)
         setFilteredBooks(uniqueBookNames)
 
         const bookMapTemp: { [key: string]: BibleBook } = {}
         allBooksFromProcessedData.forEach((book) => {
-          // book.name is already trimmed
-          bookMapTemp[book.name] = book // book itself is from processedData, so its 'name' is trimmed
+          bookMapTemp[book.name] = book
         })
         setBookMap(bookMapTemp)
         setIsLoading(false)
@@ -394,6 +401,7 @@ export default function TextBible() {
         const chapters = bookData.chapters.map((chapter) => chapter.number)
         setChapters(chapters.sort((a, b) => a - b))
         setSelectedChapter("")
+        setChapterInput("")
         setChapterText([])
         setCurrentSlide(0)
         setShowFullScreen(false)
@@ -401,6 +409,7 @@ export default function TextBible() {
     }
   }, [selectedBook, bibleData, bookMap])
 
+  // تحديث useEffect للتعامل مع إدخال رقم الإصحاح
   useEffect(() => {
     if (selectedBook && selectedChapter && bibleData) {
       const bookData = bookMap[selectedBook]
@@ -408,19 +417,58 @@ export default function TextBible() {
         const chapterNumber = Number.parseInt(selectedChapter)
         const chapterData = bookData.chapters.find((chapter) => chapter.number === chapterNumber)
         if (chapterData) {
-          const verses = chapterData.verses.map(
-            (verse) => `${selectedBook} ${chapterNumber}:${verse.number}\n${verse.text}`,
-          )
+          const verses = chapterData.verses.map((verse) => {
+            const bookNameFormatted = `<span class="book-name">${selectedBook}</span>`
+            const verseNumberFormatted = `<span class="verse-number">${chapterNumber}:${verse.number}</span>`
+            return `${bookNameFormatted} ${verseNumberFormatted}\n${verse.text}`
+          })
           setChapterText(verses)
-          setCurrentSlide(0)
+          // تعيين الآية المستهدفة أو البداية
+          if (targetVerseNumber !== null) {
+            setCurrentSlide(targetVerseNumber - 1)
+            setTargetVerseNumber(null) // إعادة تعيين بعد الاستخدام
+          } else {
+            setCurrentSlide(0)
+          }
           setShowFullScreen(true)
+          setCurrentBookChapter({ book: selectedBook, chapter: selectedChapter })
           document.documentElement.requestFullscreen().catch((err) => console.warn("Error enabling fullscreen:", err))
         } else {
           setError("لم يتم العثور على نص الاصحاح المحدد.")
         }
       }
     }
-  }, [selectedBook, selectedChapter, bibleData, bookMap])
+  }, [selectedBook, selectedChapter, bibleData, bookMap, targetVerseNumber])
+
+  // استبدال دالة handleChapterInput بالكود التالي:
+  const handleChapterInput = (value: string) => {
+    setChapterInput(value)
+    const chapterNumber = Number.parseInt(value)
+
+    // التحقق من صحة الرقم وإظهار رسائل الخطأ فقط
+    if (value && isNaN(chapterNumber)) {
+      setError("يرجى إدخال رقم صحيح")
+    } else if (value && !isNaN(chapterNumber) && !chapters.includes(chapterNumber)) {
+      if (selectedBook) {
+        setError(`الإصحاح ${chapterNumber} غير موجود في ${selectedBook}. الإصحاحات المتاحة: 1-${Math.max(...chapters)}`)
+      } else {
+        setError("يرجى اختيار السفر أولاً")
+      }
+    } else {
+      setError(null)
+    }
+
+    // لا نعيّن selectedChapter هنا، سنتركه للضغط على Enter أو فقدان التركيز
+  }
+
+  // إضافة دالة جديدة للتعامل مع تأكيد الإدخال
+  const handleChapterConfirm = () => {
+    const chapterNumber = Number.parseInt(chapterInput)
+    if (!isNaN(chapterNumber) && chapters.includes(chapterNumber)) {
+      setSelectedChapter(chapterInput)
+      setError(null)
+    }
+  }
 
   useEffect(() => {
     if (searchMode === "books") {
@@ -432,29 +480,21 @@ export default function TextBible() {
         const results = books.filter((bookName) => {
           const lowerBookName = bookName.toLowerCase()
 
-          // Condition 1: Query is part of the full book name
           if (lowerBookName.includes(query)) {
             return true
           }
 
-          // Condition 2: Query is part of an abbreviation for this book
-          // This can be optimized later with a precomputed map
           for (const abbrKey in bookAbbreviations) {
             if (bookAbbreviations[abbrKey] === bookName && abbrKey.toLowerCase().includes(query)) {
               return true
             }
           }
 
-          // Condition 3: Query is a number ("1", "2", "3") and matches numbered books
           if (/^[1-3]$/.test(query)) {
-            // Query is "1", "2", or "3"
-            // Check full book names containing "الاول", "الثاني", "الثالث"
             if (query === "1" && (lowerBookName.includes("الاول") || lowerBookName.includes("الأول"))) return true
             if (query === "2" && (lowerBookName.includes("الثاني") || lowerBookName.includes("الثانية"))) return true
             if (query === "3" && (lowerBookName.includes("الثالث") || lowerBookName.includes("الثالثة"))) return true
 
-            // Also check if an abbreviation for this book *starts with* the number query + space
-            // This can be optimized later with a precomputed map
             for (const abbrKey in bookAbbreviations) {
               if (bookAbbreviations[abbrKey] === bookName && abbrKey.startsWith(query + " ")) {
                 return true
@@ -467,10 +507,9 @@ export default function TextBible() {
         setShowSearchDropdown(query !== "" && results.length > 0)
       }
     } else {
-      // searchMode === "verses"
-      setShowSearchDropdown(false) // No dropdown for verse search
+      setShowSearchDropdown(false)
     }
-  }, [searchQuery, books, searchMode, bookAbbreviations]) // Added bookAbbreviations to dependencies, though it's const, for correctness if it were dynamic. Better to create maps outside with useMemo.
+  }, [searchQuery, books, searchMode, bookAbbreviations])
 
   const handleSearchBookSelect = (book: string) => {
     setSelectedBook(book)
@@ -481,7 +520,6 @@ export default function TextBible() {
     }
   }
 
-  // دالة لتحليل استعلام البحث (اختصار السفر + رقم الاصحاح)
   const parseBookChapter = (query: string) => {
     const parts = query.trim().split(/\s+/)
     if (parts.length < 2) return null
@@ -503,7 +541,6 @@ export default function TextBible() {
     return { book: bookAbbreviations[bookAbbr], chapter: Number.parseInt(chapter) }
   }
 
-  // دالة لمعالجة البحث المباشر عند الضغط على Enter
   const handleBooksSearch = () => {
     const parsed = parseBookChapter(searchQuery)
     if (parsed) {
@@ -512,7 +549,11 @@ export default function TextBible() {
       if (bookData) {
         const chapterData = bookData.chapters.find((ch) => ch.number === chapter)
         if (chapterData) {
-          const verses = chapterData.verses.map((verse) => `${book} ${chapter}:${verse.number}\n${verse.text}`)
+          const verses = chapterData.verses.map((verse) => {
+            const bookNameFormatted = `<span class="book-name">${book}</span>`
+            const verseNumberFormatted = `<span class="verse-number">${chapter}:${verse.number}</span>`
+            return `${bookNameFormatted} ${verseNumberFormatted}\n${verse.text}`
+          })
           setSelectedBook(book)
           setSelectedChapter(chapter.toString())
           setChapterText(verses)
@@ -533,18 +574,24 @@ export default function TextBible() {
     }
   }
 
-  // Function to handle selection of a verse from search results
   const handleVerseResultSelect = useCallback(
     (result: SearchResult) => {
-      setSelectedBook(result.book)
-      setSelectedChapter(result.chapter.toString())
-      // This will trigger the useEffect to load the chapter and display it in fullscreen.
-      // The favorite button will then have the correct selectedBook and selectedChapter.
-      setVerseSearchResults([]) // Clear the list of verse search results
-      // Consider clearing searchQuery as well if appropriate for UX
-      // setSearchQuery("");
+      const bookData = bookMap[result.book]
+      if (bookData) {
+        const chapterData = bookData.chapters.find((ch) => ch.number === result.chapter)
+        if (chapterData) {
+          // تعيين الآية المستهدفة قبل تحديث الإصحاح
+          setTargetVerseNumber(result.verse)
+          setCurrentBookChapter({ book: result.book, chapter: result.chapter.toString() })
+          setSelectedBook(result.book)
+          setSelectedChapter(result.chapter.toString())
+          setVerseSearchResults([])
+          setShowSearchDropdown(false)
+          setSearchQuery("")
+        }
+      }
     },
-    [setSelectedBook, setSelectedChapter, setVerseSearchResults],
+    [bookMap, setSelectedBook, setSelectedChapter, setVerseSearchResults, setShowSearchDropdown, setSearchQuery],
   )
 
   const removeArabicDiacritics = (text: string): string => {
@@ -560,7 +607,6 @@ export default function TextBible() {
     const results: SearchResult[] = []
     const startTime = performance.now()
 
-    // استخدام flatMap لتسريع البحث
     const allVerses = bibleData
       .flatMap((section) => section.books)
       .flatMap((book) => book.chapters.map((chapter) => ({ book, chapter })))
@@ -810,9 +856,8 @@ export default function TextBible() {
     setShowSettings(false)
   }
 
-  // Font size control functions
   const increaseFontSize = useCallback(() => {
-    const newSize = Math.min(globalFontSize + 4, 120) // Max font size 120px
+    const newSize = Math.min(globalFontSize + 4, 120)
     setGlobalFontSize(newSize)
     if (typeof window !== "undefined") {
       localStorage.setItem("globalFontSize", newSize.toString())
@@ -825,7 +870,6 @@ export default function TextBible() {
     const minFontSize = 20
     const maxFontSize = 120
 
-    // تحديد الحد الأقصى للحجم بناءً على طول النص
     let adjustedFontSize = baseFontSize
     if (textLength < 50) {
       adjustedFontSize = Math.min(baseFontSize * 1.2, maxFontSize)
@@ -835,11 +879,10 @@ export default function TextBible() {
       adjustedFontSize = baseFontSize * (1 - ((textLength - 50) / 150) * 0.4)
     }
 
-    // التأكد من أن النص يتناسب داخل الشريحة
     const container = document.querySelector(".slide-container") as HTMLElement | null
     if (container) {
-      const containerWidth = container.offsetWidth * 0.9 // 90% of container width
-      const containerHeight = container.offsetHeight * 0.9 // 90% of container height
+      const containerWidth = container.offsetWidth * 0.9
+      const containerHeight = container.offsetHeight * 0.9
       const tempElement = document.createElement("div")
       tempElement.style.fontSize = `${adjustedFontSize}px`
       tempElement.style.fontFamily = '"Noto Sans Arabic", sans-serif'
@@ -855,7 +898,6 @@ export default function TextBible() {
 
       document.body.removeChild(tempElement)
 
-      // تقليل الحجم إذا كان النص يتجاوز الحدود
       while ((width > containerWidth || height > containerHeight) && adjustedFontSize > minFontSize) {
         adjustedFontSize -= 2
         tempElement.style.fontSize = `${adjustedFontSize}px`
@@ -870,7 +912,7 @@ export default function TextBible() {
   }
 
   const decreaseFontSize = useCallback(() => {
-    const newSize = Math.max(globalFontSize - 4, 20) // Min font size 20px
+    const newSize = Math.max(globalFontSize - 4, 20)
     setGlobalFontSize(newSize)
     if (typeof window !== "undefined") {
       localStorage.setItem("globalFontSize", newSize.toString())
@@ -882,7 +924,7 @@ export default function TextBible() {
       {!showFullScreen ? (
         <div className="p-4 sm:p-6 w-full">
           <div className="flex flex-col items-center mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-center mb-2 text-foreground">الـــكــــــتـــــاب الـــمــــقــــــدس</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-center mb-2 text-foreground">الكتاب المقدس</h1>
             <p className="text-muted-foreground text-center max-w-md text-sm sm:text-base font-semibold">
               ابحث في الكتاب المقدس وعرض النصوص بطريقة احترافية
             </p>
@@ -891,7 +933,24 @@ export default function TextBible() {
           {isLoading ? (
             <p className="text-center text-muted-foreground">جاري التحميل...</p>
           ) : error ? (
-            <p className="text-center text-destructive font-semibold">{error}</p>
+            <div className="text-center">
+              <p className="text-destructive font-semibold mb-4">{error}</p>
+              <Button
+                onClick={() => {
+                  setError(null)
+                  setSelectedBook("")
+                  setSelectedChapter("")
+                  setChapterInput("")
+                  setSearchQuery("")
+                  if (searchInputRef.current) {
+                    searchInputRef.current.focus()
+                  }
+                }}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-200"
+              >
+                العودة للبحث
+              </Button>
+            </div>
           ) : (
             <>
               <div className="relative w-full max-w-3xl mx-auto mb-4 sm:mb-6" ref={searchRef}>
@@ -1003,7 +1062,7 @@ export default function TextBible() {
                           onClick={() => handleSearchBookSelect(book)}
                           className="w-full text-right px-4 sm:px-6 py-3 text-sm sm:text-base hover:bg-muted text-foreground transition-colors duration-200 border-b border-border last:border-b-0"
                         >
-                          {book}
+                          <span className="book-name">{book}</span>
                         </button>
                       ))}
                     </motion.div>
@@ -1019,29 +1078,14 @@ export default function TextBible() {
                       {verseSearchResults.map((result, index) => (
                         <button
                           key={index}
-                          onClick={() => {
-                            const bookData = bookMap[result.book]
-                            if (bookData) {
-                              const chapterData = bookData.chapters.find((ch) => ch.number === result.chapter)
-                              if (chapterData) {
-                                const verses = chapterData.verses.map(
-                                  (verse) => `${result.book} ${result.chapter}:${verse.number}\n${verse.text}`,
-                                )
-                                setSelectedBook(result.book)
-                                setSelectedChapter(result.chapter.toString())
-                                setChapterText(verses)
-                                setCurrentSlide(result.verse - 1)
-                                setShowFullScreen(true)
-                                document.documentElement
-                                  .requestFullscreen()
-                                  .catch((err) => console.warn("Error enabling fullscreen:", err))
-                                setShowSearchDropdown(false)
-                              }
-                            }
-                          }}
+                          onClick={() => handleVerseResultSelect(result)}
                           className="w-full text-right px-4 py-3 text-sm hover:bg-muted transition-colors border-b last:border-b-0"
                         >
-                          {`${result.book} ${result.chapter}:${result.verse} - ${result.text.substring(0, 50)}...`}
+                          <span className="book-name">{result.book}</span>{" "}
+                          <span className="verse-number">
+                            {result.chapter}:{result.verse}
+                          </span>{" "}
+                          - {result.text.substring(0, 50)}...
                         </button>
                       ))}
                     </motion.div>
@@ -1128,34 +1172,32 @@ export default function TextBible() {
                         value={book}
                         className="text-right px-4 sm:px-6 py-3 text-sm sm:text-base text-foreground hover:bg-muted transition-colors duration-200 border-b border-border last:border-b-0 focus:bg-muted"
                       >
-                        {book}
+                        <span className="book-name">{book}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
 
-                <Select value={selectedChapter} onValueChange={(v) => setSelectedChapter(v)} disabled={!selectedBook}>
-                  <SelectTrigger
-                    className={`bg-card text-foreground border-2 ${
-                      theme === "dark" ? "border-white" : "border-black"
-                    } rounded-xl shadow-xl focus:ring-4 focus:ring-ring focus:border-${
-                      theme === "dark" ? "white" : "black"
-                    } text-sm sm:text-base py-4 sm:py-5`}
-                  >
-                    <SelectValue placeholder="اختر الاصحاح" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border border-border rounded-xl shadow-2xl max-h-60 overflow-y-auto z-50">
-                    {chapters.map((chapter) => (
-                      <SelectItem
-                        key={chapter}
-                        value={chapter.toString()}
-                        className="text-right px-4 sm:px-6 py-3 text-sm sm:text-base text-foreground hover:bg-muted transition-colors duration-200 border-b border-border last:border-b-0 focus:bg-muted"
-                      >
-                        الاصحاح {chapter}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  type="number"
+                  value={chapterInput}
+                  onChange={(e) => handleChapterInput(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handleChapterConfirm()
+                    }
+                  }}
+                  onBlur={handleChapterConfirm}
+                  placeholder="ادخل رقم الإصحاح"
+                  disabled={!selectedBook}
+                  min="1"
+                  max={chapters.length > 0 ? Math.max(...chapters) : 1}
+                  className={`bg-card text-foreground border-2 ${
+                    theme === "dark" ? "border-white" : "border-black"
+                  } rounded-xl shadow-xl focus:ring-4 focus:ring-ring focus:border-${
+                    theme === "dark" ? "white" : "black"
+                  } text-sm sm:text-base py-4 sm:py-5 text-center`}
+                />
               </div>
 
               {favoriteBibleChapters.length > 0 && !searchQuery.trim() && !showRecentSearches && (
@@ -1172,12 +1214,17 @@ export default function TextBible() {
                               onClick={() => {
                                 setSelectedBook(book)
                                 setSelectedChapter(chapter)
+                                setChapterInput(chapter)
                               }}
                             >
-                              {book} {chapter}
+                              <span className="book-name">{book}</span> <span className="verse-number">{chapter}</span>
                             </button>
                             <button
-                              onClick={() => toggleFavorite(fav)}
+                              onClick={() =>
+                                toggleFavorite(
+                                  `${currentBookChapter?.book || selectedBook}:${currentBookChapter?.chapter || selectedChapter}`,
+                                )
+                              }
                               className="ml-2 p-2 rounded-full hover:bg-muted"
                             >
                               <Heart className="h-5 w-5 fill-red-500 text-red-500" />
@@ -1243,7 +1290,7 @@ export default function TextBible() {
               {chapterText.length > 0 ? (
                 displayMode === "slides" ? (
                   <div className="text-center px-4 sm:px-8 w-full h-full flex items-center justify-center">
-                    <p
+                    <div
                       className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
                       style={{
                         fontSize: `${
@@ -1259,14 +1306,13 @@ export default function TextBible() {
                         fontFamily: '"Noto Sans Arabic", sans-serif',
                         fontWeight: 900,
                       }}
-                    >
-                      {chapterText[currentSlide]}
-                    </p>
+                      dangerouslySetInnerHTML={{ __html: chapterText[currentSlide] }}
+                    />
                   </div>
                 ) : (
                   <div className="w-full h-full overflow-y-auto px-4 sm:px-8 py-10 sm:py-12 flex flex-col items-center">
                     {chapterText.map((text, index) => (
-                      <p
+                      <div
                         key={index}
                         className={`font-extrabold ${currentTextColor.class} leading-relaxed whitespace-pre-line arabic-text mb-8 max-w-4xl sm:max-w-6xl mx-auto responsive-text text-center font-[900]`}
                         style={{
@@ -1275,9 +1321,8 @@ export default function TextBible() {
                           fontFamily: '"Noto Sans Arabic", sans-serif',
                           fontWeight: 900,
                         }}
-                      >
-                        {text}
-                      </p>
+                        dangerouslySetInnerHTML={{ __html: text }}
+                      />
                     ))}
                   </div>
                 )
@@ -1754,18 +1799,26 @@ export default function TextBible() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
-                        onClick={() => toggleFavorite(`${selectedBook}:${selectedChapter}`)}
+                        onClick={() =>
+                          toggleFavorite(
+                            `${currentBookChapter?.book || selectedBook}:${currentBookChapter?.chapter || selectedChapter}`,
+                          )
+                        }
                         className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white transition-colors duration-200"
                         aria-label={
-                          favoriteBibleChapters.includes(`${selectedBook}:${selectedChapter}`)
+                          favoriteBibleChapters.includes(
+                            `${currentBookChapter?.book || selectedBook}:${currentBookChapter?.chapter || selectedChapter}`,
+                          )
                             ? "ازالة من المفضلة"
                             : "اضافة الى المفضلة"
                         }
-                        disabled={!selectedBook || !selectedChapter}
+                        disabled={!currentBookChapter && (!selectedBook || !selectedChapter)}
                       >
                         <Heart
                           className={`h-6 w-6 ${
-                            favoriteBibleChapters.includes(`${selectedBook}:${selectedChapter}`)
+                            favoriteBibleChapters.includes(
+                              `${currentBookChapter?.book || selectedBook}:${currentBookChapter?.chapter || selectedChapter}`,
+                            )
                               ? "fill-red-500 text-red-500"
                               : "text-white"
                           }`}
@@ -1773,7 +1826,9 @@ export default function TextBible() {
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      {favoriteBibleChapters.includes(`${selectedBook}:${selectedChapter}`)
+                      {favoriteBibleChapters.includes(
+                        `${currentBookChapter?.book || selectedBook}:${currentBookChapter?.chapter || selectedChapter}`,
+                      )
                         ? "ازالة من المفضلة"
                         : "اضافة الى المفضلة"}
                     </TooltipContent>
