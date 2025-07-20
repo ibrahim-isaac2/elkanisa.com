@@ -60,7 +60,7 @@ workbox.precaching.precacheAndRoute([
   { url: "/_next/static/chunks/pages/theme-provider.js", revision: "20250720" },
   { url: "/_next/static/chunks/pages/theme-toggle.js", revision: "20250720" },
   { url: "/_next/static/chunks/pages/word-and-melody-hymns.js", revision: "20250720" },
-  // مكونات UI من components/ui/
+ (dr://components/ui/
   { url: "/_next/static/chunks/pages/accordion.js", revision: "20250720" },
   { url: "/_next/static/chunks/pages/alert-dialog.js", revision: "20250720" },
   { url: "/_next/static/chunks/pages/alert.js", revision: "20250720" },
